@@ -1,23 +1,22 @@
-// ChurchConnect Service Worker for PWA
-const CACHE_NAME = 'churchconnect-v1';
-const STATIC_CACHE = 'churchconnect-static-v1';
-const DYNAMIC_CACHE = 'churchconnect-dynamic-v1';
+// Arche d'Amour Service Worker for PWA
+const CACHE_NAME = 'archedamour-v1';
+const STATIC_CACHE = 'archedamour-static-v1';
+const DYNAMIC_CACHE = 'archedamour-dynamic-v1';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/offline.html',
-  // CSS and JS will be cached on first fetch
 ];
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing Service Worker...');
+  console.log('[Arche d\'Amour SW] Installing Service Worker...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('[SW] Caching static assets');
+        console.log('[Arche d\'Amour SW] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => self.skipWaiting())
@@ -26,14 +25,14 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean old caches
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating Service Worker...');
+  console.log('[Arche d\'Amour SW] Activating Service Worker...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
           .map((name) => {
-            console.log('[SW] Deleting old cache:', name);
+            console.log(`[Arche d\'Amour SW] Deleting old cache: ${name}`);
             return caches.delete(name);
           })
       );
@@ -147,7 +146,7 @@ self.addEventListener('fetch', (event) => {
 
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync:', event.tag);
+  console.log('[Arche d\'Amour SW] Background sync:', event.tag);
   
   if (event.tag === 'sync-prayers') {
     event.waitUntil(syncPrayerRequests());
@@ -158,10 +157,10 @@ self.addEventListener('sync', (event) => {
 
 // Push notifications
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push received');
+  console.log('[Arche d\'Amour SW] Push received');
   
   let data = {
-    title: 'ChurchConnect',
+    title: "Arche d'Amour",
     body: 'Vous avez une nouvelle notification',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-72x72.png',
@@ -183,7 +182,7 @@ self.addEventListener('push', (event) => {
 
 // Notification click handler
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked');
+  console.log('[Arche d\'Amour SW] Notification clicked');
   event.notification.close();
 
   event.waitUntil(
@@ -204,11 +203,9 @@ self.addEventListener('notificationclick', (event) => {
 
 // Helper functions for background sync
 async function syncPrayerRequests() {
-  console.log('[SW] Syncing prayer requests...');
-  // Implementation would queue and send offline prayer requests
+  console.log("[Arche d'Amour SW] Syncing prayer requests...");
 }
 
 async function syncDonations() {
-  console.log('[SW] Syncing donations...');
-  // Implementation would queue and send offline donation records
+  console.log("[Arche d'Amour SW] Syncing donations...");
 }

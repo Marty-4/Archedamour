@@ -106,22 +106,22 @@ export function PWAInstallPrompt() {
   }
 
   return (
-    <Card className="border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30">
+    <Card className="border-sky-200 bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30">
       <CardContent className="p-4 relative">
         <button
           onClick={handleDismiss}
-          className="absolute top-3 right-3 p-1 rounded-full hover:bg-violet-100 dark:hover:bg-violet-900 transition-colors"
+          className="absolute top-3 right-3 p-1 rounded-full hover:bg-sky-100 dark:hover:bg-sky-900 transition-colors"
         >
           <X className="w-4 h-4 text-muted-foreground" />
         </button>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pr-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-sky-500/25">
               <Smartphone className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h4 className="font-semibold text-sm">Installer ChurchConnect</h4>
+              <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Installer Arche d&apos;Amour</h4>
               <p className="text-xs text-muted-foreground">
                 Accédez rapidement depuis votre écran d&apos;accueil
               </p>
@@ -132,16 +132,16 @@ export function PWAInstallPrompt() {
             {deferredPrompt ? (
               <Button
                 size="sm"
-                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-sm"
+                className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-sm shadow-md shadow-sky-500/25"
                 onClick={handleInstall}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Installer
               </Button>
             ) : isIOS ? (
-              <div className="text-xs text-muted-foreground bg-white dark:bg-slate-800 rounded-lg p-3 border">
-                <p className="font-medium mb-1">Pour installer sur iOS :</p>
-                <ol className="list-decimal list-inside space-y-1">
+              <div className="text-xs text-muted-foreground bg-white dark:bg-slate-800 rounded-lg p-3 border border-sky-200 dark:border-sky-800">
+                <p className="font-medium mb-1 text-slate-900 dark:text-white">Pour installer sur iOS :</p>
+                <ol className="list-decimal list-inside space-y-1 text-slate-600 dark:text-slate-400">
                   <li>Appuyez sur l&apos;icône Partager</li>
                   <li>Faites défiler et appuyez sur &quot;Sur l&apos;écran d&apos;accueil&quot;</li>
                   <li>Appuyez sur &quot;Ajouter&quot;</li>
@@ -150,7 +150,7 @@ export function PWAInstallPrompt() {
             ) : null}
 
             {isInstalled && (
-              <div className="flex items-center gap-2 text-emerald-600 text-sm px-3 py-2 bg-emerald-50 rounded-lg">
+              <div className="flex items-center gap-2 text-emerald-600 text-sm px-3 py-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
                 <CheckCircle2 className="w-4 h-4" />
                 Application installée
               </div>

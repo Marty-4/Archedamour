@@ -25,11 +25,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "ChurchConnect - Plateforme Numérique d'Église",
-    template: "%s | ChurchConnect",
+    default: "Arche d'Amour - Plateforme d'Église",
+    template: "%s | Arche d'Amour",
   },
   description:
-    "ChurchConnect est une plateforme numérique complète pour la gestion de votre église. Gérez les membres, les événements, les dons, les groupes de vie et bien plus encore avec élégance et efficacité.",
+    "Arche d'Amour est une plateforme numérique complète pour la gestion de votre église. Gérez les membres, les événements, les dons, les groupes de vie et bien plus encore.",
   keywords: [
     "église",
     "gestion d'église",
@@ -38,11 +38,11 @@ export const metadata: Metadata = {
     "dons en ligne",
     "groupes de vie",
     "culte en direct",
-    "ChurchConnect",
+    "Arche d'Amour",
   ],
-  authors: [{ name: "ChurchConnect" }],
-  creator: "ChurchConnect",
-  publisher: "ChurchConnect",
+  authors: [{ name: "Arche d'Amour" }],
+  creator: "Arche d'Amour",
+  publisher: "Arche d'Amour",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ChurchConnect",
+    title: "Arche d'Amour",
   },
   formatDetection: {
     telephone: false,
@@ -65,15 +65,15 @@ export const metadata: Metadata = {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "ChurchConnect",
-    "application-name": "ChurchConnect",
+    "apple-mobile-web-app-title": "Arche d'Amour",
+    "application-name": "Arche d'Amour",
   },
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://churchconnect.app",
-    siteName: "ChurchConnect",
-    title: "ChurchConnect - Plateforme Numérique d'Église",
+    url: "https://archedamour.app",
+    siteName: "Arche d'Amour",
+    title: "Arche d'Amour - Plateforme d'Église",
     description:
       "La solution complète pour gérer et développer la vie de votre communauté ecclésiale.",
     images: [
@@ -81,13 +81,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "ChurchConnect - Plateforme Numérique d'Église",
+        alt: "Arche d'Amour - Plateforme d'Église",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ChurchConnect - Plateforme Numérique d'Église",
+    title: "Arche d'Amour - Plateforme d'Église",
     description:
       "La solution complète pour gérer et développer la vie de votre communauté ecclésiale.",
     images: ["/og-image.png"],

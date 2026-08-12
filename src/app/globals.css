@@ -4,8 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================
-   CHURCHCONNECT THEME - Design System
-   A warm, elegant, spiritual design palette
+   ARCHE D'AMOUR - Design System
+   Clean, Light, Blue & White Theme
+   Easy to use, mobile-first, accessible
    ============================================ */
 
 @theme inline {
@@ -50,12 +51,12 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   
-  /* Custom ChurchConnect colors */
-  --color-violet-deep: var(--violet-deep);
-  --color-violet-light: var(--violet-light);
-  --color-gold-warm: var(--gold-warm);
-  --color-gold-soft: var(--gold-soft);
-  --color-spiritual-glow: var(--spiritual-glow);
+  /* Custom Arche d'Amour colors */
+  --color-sky-blue: var(--sky-blue);
+  --color-ocean-deep: var(--ocean-deep);
+  --color-cloud-white: var(--cloud-white);
+  --color-rainbow-accent: var(--rainbow-accent);
+  --color-peace-light: var(--peace-light);
   
   /* Radius */
   --radius-sm: calc(var(--radius) - 4px);
@@ -66,135 +67,137 @@
 }
 
 /* ============================================
-   LIGHT MODE - Warm, inviting, spiritual
+   LIGHT MODE - Clean White & Sky Blue
+   Fresh, peaceful, easy on the eyes
    ============================================ */
 :root {
   --radius: 0.75rem;
   
-  /* Background & Foreground - Warm white with subtle cream tones */
-  --background: oklch(0.985 0.005 85);
-  --foreground: oklch(0.185 0.02 285);
+  /* Background - Pure white */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.20 0.02 240);
   
-  /* Card surfaces - Pure white with warmth */
-  --card: oklch(1 0.002 85);
-  --card-foreground: oklch(0.185 0.02 285);
+  /* Card surfaces - Crisp white */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.20 0.02 240);
   
-  /* Popover */
-  --popover: oklch(1 0.002 85);
-  --popover-foreground: oklch(0.185 0.02 285);
+  /* Popover - Pure white */
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.02 240);
   
-  /* Primary - Rich spiritual violet (deep but not dark) */
-  --primary: oklch(0.48 0.22 295);
-  --primary-foreground: oklch(0.995 0.001 285);
+  /* Primary - Beautiful sky blue */
+  --primary: oklch(0.62 0.15 240);
+  --primary-foreground: oklch(1 0 0);
   
-  /* Secondary - Soft lavender tint */
-  --secondary: oklch(0.95 0.03 290);
-  --secondary-foreground: oklch(0.30 0.15 290);
+  /* Secondary - Very light blue tint */
+  --secondary: oklch(0.96 0.03 240);
+  --secondary-foreground: oklch(0.35 0.08 240);
   
-  /* Muted - Subtle gray with warmth */
-  --muted: oklch(0.955 0.01 85);
-  --muted-foreground: oklch(0.50 0.03 285);
+  /* Muted - Soft gray-blue */
+  --muted: oklch(0.96 0.01 240);
+  --muted-foreground: oklch(0.50 0.02 240);
   
-  /* Accent - Warm gold/amber for highlights */
-  --accent: oklch(0.78 0.14 75);
-  --accent-foreground: oklch(0.25 0.08 55);
+  /* Accent - Warm coral for CTAs */
+  --accent: oklch(0.72 0.15 30);
+  --accent-foreground: oklch(1 0 0);
   
   /* Destructive - Soft red */
-  --destructive: oklch(0.55 0.22 25);
+  --destructive: oklch(0.55 0.20 25);
   
-  /* Borders & Inputs - Warm gray borders */
-  --border: oklch(0.90 0.01 85);
-  --input: oklch(0.90 0.01 85);
-  --ring: oklch(0.48 0.22 295);
+  /* Borders & Inputs - Light gray-blue */
+  --border: oklch(0.92 0.01 240);
+  --input: oklch(0.92 0.01 240);
+  --ring: oklch(0.62 0.15 240);
   
-  /* Chart colors - Harmonious palette */
-  --chart-1: oklch(0.55 0.20 295);      /* Violet */
-  --chart-2: oklch(0.72 0.14 75);       /* Gold */
-  --chart-3: oklch(0.60 0.18 180);      /* Teal */
-  --chart-4: oklch(0.65 0.20 35);       /* Coral */
-  --chart-5: oklch(0.70 0.12 250);      /* Periwinkle */
+  /* Chart colors - Ocean palette */
+  --chart-1: oklch(0.62 0.15 240);      /* Sky blue */
+  --chart-2: oklch(0.72 0.12 200);      /* Teal */
+  --chart-3: oklch(0.65 0.18 180);      /* Cyan */
+  --chart-4: oklch(0.70 0.14 30);       /* Coral */
+  --chart-5: oklch(0.60 0.10 280);      /* Periwinkle */
   
-  /* Sidebar - Light sidebar */
-  --sidebar: oklch(0.97 0.015 290);
-  --sidebar-foreground: oklch(0.20 0.05 285);
-  --sidebar-primary: oklch(0.48 0.22 295);
-  --sidebar-primary-foreground: oklch(0.995 0.001 285);
-  --sidebar-accent: oklch(0.94 0.03 290);
-  --sidebar-accent-foreground: oklch(0.30 0.15 290);
-  --sidebar-border: oklch(0.90 0.01 85);
-  --sidebar-ring: oklch(0.48 0.22 295);
+  /* Sidebar - Light and clean */
+  --sidebar: oklch(0.98 0.005 240);
+  --sidebar-foreground: oklch(0.25 0.02 240);
+  --sidebar-primary: oklch(0.62 0.15 240);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.94 0.02 240);
+  --sidebar-accent-foreground: oklch(0.35 0.08 240);
+  --sidebar-border: oklch(0.92 0.01 240);
+  --sidebar-ring: oklch(0.62 0.15 240);
   
-  /* Custom ChurchConnect variables */
-  --violet-deep: oklch(0.42 0.24 295);
-  --violet-light: oklch(0.82 0.10 295);
-  --gold-warm: oklch(0.78 0.16 75);
-  --gold-soft: oklch(0.92 0.06 75);
-  --spiritual-glow: oklch(0.95 0.04 295);
+  /* Custom Arche d'Amour variables */
+  --sky-blue: oklch(0.62 0.15 240);
+  --ocean-deep: oklch(0.45 0.18 245);
+  --cloud-white: oklch(0.99 0.002 240);
+  --rainbow-accent: oklch(0.70 0.18 30);
+  --peace-light: oklch(0.97 0.02 220);
 }
 
 /* ============================================
-   DARK MODE - Deep, rich, contemplative
+   DARK MODE - Deep ocean blue
+   Calming, easy on the eyes at night
    ============================================ */
 .dark {
-  /* Background - Deep navy-violet */
-  --background: oklch(0.13 0.03 285);
-  --foreground: oklch(0.96 0.01 85);
+  /* Background - Deep navy blue */
+  --background: oklch(0.16 0.03 240);
+  --foreground: oklch(0.96 0.005 240);
   
-  /* Card surfaces - Slightly lighter deep tone */
-  --card: oklch(0.17 0.035 285);
-  --card-foreground: oklch(0.96 0.01 85);
+  /* Card surfaces - Slightly lighter navy */
+  --card: oklch(0.20 0.03 240);
+  --card-foreground: oklch(0.96 0.005 240);
   
   /* Popover */
-  --popover: oklch(0.17 0.035 285);
-  --popover-foreground: oklch(0.96 0.01 85);
+  --popover: oklch(0.20 0.03 240);
+  --popover-foreground: oklch(0.96 0.005 240);
   
-  /* Primary - Brighter violet for visibility */
-  --primary: oklch(0.62 0.22 295);
-  --primary-foreground: oklch(0.98 0.005 285);
+  /* Primary - Brighter sky blue */
+  --primary: oklch(0.68 0.15 235);
+  --primary-foreground: oklch(1 0 0);
   
-  /* Secondary - Muted violet */
-  --secondary: oklch(0.22 0.04 285);
-  --secondary-foreground: oklch(0.92 0.02 85);
+  /* Secondary - Muted navy */
+  --secondary: oklch(0.25 0.04 240);
+  --secondary-foreground: oklch(0.92 0.01 240);
   
   /* Muted - Dark muted */
-  --muted: oklch(0.22 0.03 285);
-  --muted-foreground: oklch(0.65 0.03 285);
+  --muted: oklch(0.25 0.025 240);
+  --muted-foreground: oklch(0.65 0.02 240);
   
-  /* Accent - Softer gold for dark mode */
-  --accent: oklch(0.68 0.14 75);
-  --accent-foreground: oklch(0.25 0.06 55);
+  /* Accent - Softer coral */
+  --accent: oklch(0.65 0.14 30);
+  --accent-foreground: oklch(1 0 0);
   
   /* Destructive - Visible red in dark mode */
-  --destructive: oklch(0.65 0.20 25);
+  --destructive: oklch(0.60 0.20 25);
   
   /* Borders & Inputs - Subtle borders */
-  --border: oklch(0.28 0.03 285 / 50%);
-  --input: oklch(0.28 0.03 285 / 40%);
-  --ring: oklch(0.62 0.22 295);
+  --border: oklch(0.28 0.025 240 / 50%);
+  --input: oklch(0.28 0.025 240 / 40%);
+  --ring: oklch(0.68 0.15 235);
   
   /* Chart colors - Adjusted for dark mode */
-  --chart-1: oklch(0.65 0.22 295);
-  --chart-2: oklch(0.78 0.14 75);
-  --chart-3: oklch(0.68 0.16 180);
-  --chart-4: oklch(0.72 0.20 35);
-  --chart-5: oklch(0.76 0.14 250);
+  --chart-1: oklch(0.65 0.16 235);
+  --chart-2: oklch(0.70 0.12 200);
+  --chart-3: oklch(0.68 0.15 185);
+  --chart-4: oklch(0.72 0.14 35);
+  --chart-5: oklch(0.64 0.12 275);
   
-  /* Sidebar - Dark sidebar */
-  --sidebar: oklch(0.15 0.035 285);
-  --sidebar-foreground: oklch(0.92 0.01 85);
-  --sidebar-primary: oklch(0.62 0.22 295);
-  --sidebar-primary-foreground: oklch(0.98 0.005 285);
-  --sidebar-accent: oklch(0.22 0.04 285);
-  --sidebar-accent-foreground: oklch(0.92 0.02 85);
-  --sidebar-border: oklch(0.28 0.03 285 / 50%);
-  --sidebar-ring: oklch(0.62 0.22 295);
+  /* Sidebar - Dark navy sidebar */
+  --sidebar: oklch(0.18 0.03 240);
+  --sidebar-foreground: oklch(0.92 0.005 240);
+  --sidebar-primary: oklch(0.68 0.15 235);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.25 0.04 240);
+  --sidebar-accent-foreground: oklch(0.92 0.01 240);
+  --sidebar-border: oklch(0.28 0.025 240 / 50%);
+  --sidebar-ring: oklch(0.68 0.15 235);
   
-  /* Custom ChurchConnect variables - Dark mode */
-  --violet-deep: oklch(0.55 0.26 295);
-  --violet-light: oklch(0.75 0.12 295);
-  --gold-warm: oklch(0.72 0.16 75);
-  --gold-soft: oklch(0.45 0.08 75);
-  --spiritual-glow: oklch(0.22 0.06 295);
+  /* Custom Arche d'Amour variables - Dark mode */
+  --sky-blue: oklch(0.68 0.15 235);
+  --ocean-deep: oklch(0.50 0.20 245);
+  --cloud-white: oklch(0.22 0.02 240);
+  --rainbow-accent: oklch(0.65 0.16 30);
+  --peace-light: oklch(0.24 0.03 230);
 }
 
 /* ============================================
@@ -227,124 +230,115 @@
 }
 
 /* ============================================
-   CUSTOM UTILITY CLASSES
+   CUSTOM UTILITY CLASSES - Arche d'Amour
    ============================================ */
 @layer utilities {
-  /* Gradient backgrounds */
-  .gradient-spiritual {
+  /* Gradient backgrounds - Sky/Ocean theme */
+  .gradient-sky {
     background: linear-gradient(
       135deg,
-      oklch(0.48 0.22 295) 0%,
-      oklch(0.42 0.24 300) 50%,
-      oklch(0.38 0.20 280) 100%
+      oklch(0.75 0.12 235) 0%,
+      oklch(0.62 0.15 240) 50%,
+      oklch(0.55 0.18 250) 100%
     );
   }
   
-  .gradient-golden {
+  .gradient-ocean {
     background: linear-gradient(
       135deg,
-      oklch(0.80 0.14 75) 0%,
-      oklch(0.74 0.16 70) 50%,
-      oklch(0.78 0.12 80) 100%
+      oklch(0.45 0.18 245) 0%,
+      oklch(0.50 0.16 240) 50%,
+      oklch(0.40 0.14 235) 100%
     );
   }
   
   .gradient-hero {
     background: linear-gradient(
       180deg,
-      oklch(0.48 0.22 295) 0%,
-      oklch(0.42 0.26 305) 40%,
-      oklch(0.32 0.18 285) 100%
+      oklch(0.85 0.08 235) 0%,
+      oklch(0.78 0.10 240) 40%,
+      oklch(0.95 0.04 230) 100%
     );
   }
   
-  .gradient-warm {
+  .gradient-soft {
     background: linear-gradient(
       135deg,
-      oklch(0.97 0.02 85) 0%,
-      oklch(0.96 0.03 75) 100%
+      oklch(0.98 0.01 240) 0%,
+      oklch(0.96 0.015 235) 100%
     );
   }
   
-  .gradient-subtle-violet {
+  .gradient-peaceful {
     background: linear-gradient(
       135deg,
-      oklch(0.97 0.02 290) 0%,
-      oklch(0.96 0.015 285) 100%
+      oklch(0.97 0.02 220) 0%,
+      oklch(0.98 0.015 230) 100%
     );
   }
   
-  /* Glass effects */
+  /* Glass effects - Clean and minimal */
   .glass {
-    background: oklch(1 0 0 / 70%);
+    background: oklch(1 0 0 / 80%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid oklch(1 0 0 / 20%);
+    border: 1px solid oklch(0.9 0.01 240 / 30%);
   }
   
   .glass-dark {
-    background: oklch(0.15 0.02 285 / 80%);
+    background: oklch(0.18 0.025 240 / 85%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid oklch(1 0 0 / 10%);
+    border: 1px solid oklch(1 0 0 / 8%);
   }
   
   .glass-card {
-    background: oklch(1 0 0 / 60%);
+    background: oklch(1 0 0 / 70%);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid oklch(0.9 0.01 85 / 50%);
+    border: 1px solid oklch(0.92 0.01 240 / 40%);
   }
   
-  /* Glow effects */
-  .glow-violet {
+  /* Glow effects - Soft blue glow */
+  .glow-sky {
     box-shadow: 
-      0 0 20px oklch(0.48 0.22 295 / 30%),
-      0 0 60px oklch(0.48 0.22 295 / 15%);
+      0 0 24px oklch(0.62 0.15 240 / 25%),
+      0 0 60px oklch(0.62 0.15 240 / 12%);
   }
   
-  .glow-gold {
+  .glow-warm {
     box-shadow: 
-      0 0 20px oklch(0.78 0.14 75 / 30%),
-      0 0 60px oklch(0.78 0.14 75 / 15%);
+      0 0 24px oklch(0.70 0.18 30 / 25%),
+      0 0 60px oklch(0.70 0.18 30 / 12%);
   }
   
   .glow-soft {
     box-shadow: 
-      0 4px 6px -1px oklch(0 0 0 / 10%),
-      0 2px 4px -2px oklch(0 0 0 / 10%);
+      0 2px 8px -2px oklch(0.60 0.05 240 / 15%),
+      0 4px 16px -4px oklch(0 0 0 / 5%);
   }
   
   /* Text gradients */
-  .text-gradient-violet {
+  .text-gradient-sky {
     background: linear-gradient(
       135deg,
-      oklch(0.48 0.22 295) 0%,
-      oklch(0.42 0.24 300) 100%
+      oklch(0.50 0.18 245) 0%,
+      oklch(0.58 0.16 235) 100%
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
-  .text-gradient-gold {
+  .text-gradient-ocean {
     background: linear-gradient(
       135deg,
-      oklch(0.78 0.14 75) 0%,
-      oklch(0.72 0.16 70) 100%
+      oklch(0.45 0.18 245) 0%,
+      oklch(0.52 0.14 240) 100%
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-  }
-  
-  /* Spiritual decorative elements */
-  .spiritual-border {
-    border-image: linear-gradient(
-      135deg,
-      oklch(0.48 0.22 295),
-      oklch(0.78 0.14 75)
-    ) 1;
   }
   
   /* Animated shimmer effect */
@@ -363,7 +357,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      oklch(1 0 0 / 10%),
+      oklch(1 0 0 / 15%),
       transparent
     );
     animation: shimmer 2s infinite;
@@ -382,21 +376,26 @@
   
   @keyframes float {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-8px); }
   }
   
-  /* Pulse glow animation */
-  .pulse-glow {
-    animation: pulseGlow 3s ease-in-out infinite;
+  /* Pulse animation - subtle */
+  .pulse-soft {
+    animation: pulseSoft 3s ease-in-out infinite;
   }
   
-  @keyframes pulseGlow {
+  @keyframes pulseSoft {
     0%, 100% { 
-      box-shadow: 0 0 20px oklch(0.48 0.22 295 / 20%);
+      opacity: 1;
     }
     50% { 
-      box-shadow: 0 0 40px oklch(0.48 0.22 295 / 40%);
+      opacity: 0.85;
     }
+  }
+
+  /* Bottom nav safe area for mobile */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 }
 
@@ -404,45 +403,45 @@
    DARK MODE GLASS ADJUSTMENTS
    ============================================ */
 .dark .glass {
-  background: oklch(0.17 0.035 285 / 70%);
-  border: 1px solid oklch(1 0 0 / 10%);
-}
-
-.dark .glass-card {
-  background: oklch(0.17 0.035 285 / 60%);
+  background: oklch(0.20 0.03 240 / 75%);
   border: 1px solid oklch(1 0 0 / 8%);
 }
 
+.dark .glass-card {
+  background: oklch(0.20 0.03 240 / 65%);
+  border: 1px solid oklch(1 0 0 / 6%);
+}
+
 /* ============================================
-   SCROLLBAR STYLING
+   SCROLLBAR STYLING - Clean & Minimal
    ============================================ */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: oklch(0.95 0.01 85);
-  border-radius: 4px;
+  background: oklch(0.96 0.01 240);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.80 0.04 285);
-  border-radius: 4px;
+  background: oklch(0.82 0.04 240);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.70 0.06 285);
+  background: oklch(0.70 0.06 240);
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: oklch(0.15 0.02 285);
+  background: oklch(0.16 0.02 240);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: oklch(0.30 0.04 285);
+  background: oklch(0.32 0.04 240);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.40 0.06 285);
+  background: oklch(0.42 0.06 240);
 }
