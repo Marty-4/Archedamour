@@ -1,0 +1,662 @@
+     1→"use client";
+     2→
+     3→import React, { useState, useMemo } from "react";
+     4→import Link from "next/link";
+     5→import { motion } from "framer-motion";
+     6→import {
+     7→  Calendar as CalendarIcon,
+     8→  Clock,
+     9→  MapPin,
+    10→  Users,
+    11→  ChevronLeft,
+    12→  ChevronRight,
+    13→  Filter,
+    14→  Grid3X3,
+    15→  List,
+    16→  Search,
+    17→  X,
+    18→  ArrowRight,
+    19→} from "lucide-react";
+    20→import { PublicLayout } from "@/components/layouts/public-layout";
+    21→import { PageHeader } from "@/components/shared/page-header";
+    22→import { Button } from "@/components/ui/button";
+    23→import { Card, CardContent } from "@/components/ui/card";
+    24→import { Badge } from "@/components/ui/badge";
+    25→import { Input } from "@/components/ui/input";
+    26→import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    27→
+    28→// Types
+    29→interface Event {
+    30→  id: number;
+    31→  title: string;
+    32→  description: string;
+    33→  date: string; // ISO format
+    34→  endDate?: string;
+    35→  time: string;
+    36→  endTime?: string;
+    37→  location: string;
+    38→  category: string;
+    39→  image?: string;
+    40→  maxSpots?: number;
+    41→  registeredCount: number;
+    42→  isUpcoming: boolean;
+    43→}
+    44→
+    45→// Mock events data
+    46→const allEvents: Event[] = [
+    47→  {
+    48→    id: 1,
+    49→    title: "Retrait Spirituel d'Été",
+    50→    description: "Un week-end de retraite spirituelle pour se ressourcer et approfondir sa relation avec Dieu. Au programme : enseignements, temps de prière, adoration et fellowship.",
+    51→    date: "2025-08-24",
+    52→    endDate: "2025-08-25",
+    53→    time: "09h00",
+    54→    endTime: "17h00",
+    55→    location: "Centre de Retraite, Fontainebleau",
+    56→    category: "Retraite",
+    57→    maxSpots: 50,
+    58→    registeredCount: 38,
+    59→    isUpcoming: true,
+    60→  },
+    61→  {
+    62→    id: 2,
+    63→    title: "Soirée Louange & Adoration",
+    64→    description: "Une soirée spéciale dédiée à l'adoration avec notre équipe de louange. Venez avec un cœur ouvert pour célébrer la grandeur de notre Dieu.",
+    65→    date: "2025-08-30",
+    66→    time: "19h00",
+    67→    endTime: "21h00",
+    68→    location: "Temple Principal - Salle de Célébration",
+    69→    category: "Louange",
+    70→    isUpcoming: true,
+    71→  },
+    72→  {
+    73→    id: 3,
+    74→    title: "Rencontre Jeunes - Back to School",
+    75→    description: "Un événement spécial pour les jeunes (15-25 ans) pour bien démarrer la nouvelle année scolaire. Thème : 'Marcher dans ta vocation'.",
+    76→    date: "2025-09-07",
+    77→    time: "14h00",
+    78→    endTime: "18h00",
+    79→    location: "Salle des Jeunes",
+    80→    category: "Jeunesse",
+    81→    maxSpots: 40,
+    82→    registeredCount: 15,
+    83→    isUpcoming: true,
+    84→  },
+    85→  {
+    86→    id: 4,
+    87→    title: "Séminaire sur le Mariage",
+    88→    description: "Un atelier pour les couples mariés ou en route vers le mariage. Thèmes : communication, gestion des conflits, intimité spirituelle.",
+    89→    date: "2025-09-14",
+    90→    time: "10h00",
+    91→    endTime: "16h30",
+    92→    location: "Salle A - Temple Principal",
+    93→    category: "Atelier",
+    94→    maxSpots: 25,
+    95→    registeredCount: 18,
+    96→    isUpcoming: true,
+    97→  },
+    98→  {
+    99→    id: 5,
+   100→    title: "Journée Portes Ouvertes",
+   101→    description: "Venez découvrir ChurchConnect ! Visite du temple, présentation des ministères, rencontre avec l'équipe pastorale. Tout le monde est bienvenu.",
+   102→    date: "2025-09-21",
+   103→    time: "11h00",
+   104→    endTime: "16h00",
+   105→    location: "Temple Principal",
+   106→    category: "Événement",
+   107→    isUpcoming: true,
+   108→  },
+   109→  {
+   110→    id: 6,
+   111→    title: "Conférence : La Foi au Quotidien",
+   112→    description: "Notre conférence annuelle avec plusieurs intervenants sur le thème de vivre sa foi au quotidien dans un monde sécularisé.",
+   113→    date: "2025-10-05",
+   114→    time: "09h30",
+   115→    endTime: "17h00",
+   116→    location: "Temple Principal - Salle de Célébration",
+   117→    category: "Conférence",
+   118→    maxSpots: 200,
+   119→    registeredCount: 87,
+   120→    isUpcoming: true,
+   121→  },
+   122→  // Past events
+   123→  {
+   124→    id: 7,
+   125→    title: "Camp d'Été Jeunes 2025",
+   126→    description: "Une semaine inoubliable pour nos jeunes avec sports, enseignements et moments de qualité.",
+   127→    date: "2025-07-07",
+   128→    endDate: "2025-07-12",
+   129→    time: "10h00",
+   130→    location: "Centre de Vacances, Bretagne",
+   131→    category: "Camp",
+   132→    maxSpots: 60,
+   133→    registeredCount: 58,
+   134→    isUpcoming: false,
+   135→  },
+   136→  {
+   137→    id: 8,
+   138→    title: "Culte de Pâques",
+   139→    description: "Notre célébration spéciale de Pâques avec baptêmes et communion.",
+   140→    date: "2025-04-20",
+   141→    time: "10h00",
+   142→    location: "Temple Principal",
+   143→    category: "Culte",
+   144→    isUpcoming: false,
+   145→  },
+   146→];
+   147→
+   148→const categories = ["Tous", "Retraite", "Louange", "Jeunesse", "Atelier", "Événement", "Conférence", "Camp", "Culte"];
+   149→
+   150→// Category colors
+   151→const categoryColors: Record<string, string> = {
+   152→  "Retraite": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
+   153→  "Louange": "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
+   154→  "Jeunesse": "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
+   155→  "Atelier": "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400",
+   156→  "Événement": "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-400",
+   157→  "Conférence": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400",
+   158→  "Camp": "bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400",
+   159→  "Culte": "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400",
+   160→};
+   161→
+   162→const categoryGradient: Record<string, string> = {
+   163→  "Retraite": "from-emerald-500 to-teal-600",
+   164→  "Louange": "from-amber-500 to-orange-500",
+   165→  "Jeunesse": "from-blue-500 to-cyan-500",
+   166→  "Atelier": "from-violet-500 to-purple-600",
+   167→  "Événement": "from-pink-500 to-rose-500",
+   168→  "Conférence": "from-indigo-500 to-purple-600",
+   169→  "Camp": "from-teal-500 to-green-500",
+   170→  "Culte": "from-rose-500 to-red-500",
+   171→};
+   172→
+   173→// Helper functions
+   174→const formatDate = (dateStr: string) => {
+   175→  const date = new Date(dateStr);
+   176→  return date.toLocaleDateString("fr-FR", {
+   177→    day: "numeric",
+   178→    month: "long",
+   179→    year: "numeric",
+   180→  });
+   181→};
+   182→
+   183→const formatShortDate = (dateStr: string) => {
+   184→  const date = new Date(dateStr);
+   185→  return date.toLocaleDateString("fr-FR", {
+   186→    day: "numeric",
+   187→    month: "short",
+   188→  });
+   189→};
+   190→
+   191→export default function EventsPage() {
+   192→  const [searchQuery, setSearchQuery] = useState("");
+   193→  const [selectedCategory, setSelectedCategory] = useState("Tous");
+   194→  const [filterType, setFilterType] = useState<"upcoming" | "past" | "all">("upcoming");
+   195→  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+   196→  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 7)); // August 2025
+   197→
+   198→  // Filter events
+   199→  const filteredEvents = useMemo(() => {
+   200→    return allEvents.filter((event) => {
+   201→      const matchesSearch =
+   202→        searchQuery === "" ||
+   203→        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+   204→        event.location.toLowerCase().includes(searchQuery.toLowerCase());
+   205→
+   206→      const matchesCategory =
+   207→        selectedCategory === "Tous" || event.category === selectedCategory;
+   208→
+   209→      const matchesFilter =
+   210→        filterType === "all" ||
+   211→        (filterType === "upcoming" && event.isUpcoming) ||
+   212→        (filterType === "past" && !event.isUpcoming);
+   213→
+   214→      return matchesSearch && matchesCategory && matchesFilter;
+   215→    });
+   216→  }, [searchQuery, selectedCategory, filterType]);
+   217→
+   218→  // Get days for calendar
+   219→  const getDaysInMonth = (date: Date) => {
+   220→    const year = date.getFullYear();
+   221→    const month = date.getMonth();
+   222→    const firstDay = new Date(year, month, 1).getDay();
+   223→    const daysInMonth = new Date(year, month + 1, 0).getDate();
+   224→    
+   225→    const days: (number | null)[] = [];
+   226→    
+   227→    // Adjust for Monday start
+   228→    const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
+   229→    
+   230→    // Empty cells before first day
+   231→    for (let i = 0; i < adjustedFirstDay; i++) {
+   232→      days.push(null);
+   233→    }
+   234→    
+   235→    // Days of month
+   236→    for (let i = 1; i <= daysInMonth; i++) {
+   237→      days.push(i);
+   238→    }
+   239→    
+   240→    return days;
+   241→  };
+   242→
+   243→  const hasEventOnDay = (day: number) => {
+   244→    if (!day) return null;
+   245→    const year = currentMonth.getFullYear();
+   246→    const month = currentMonth.getMonth();
+   247→    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+   248→    return allEvents.find(
+   249→      (e) =>
+   250→        e.date === dateStr ||
+   251→        (e.endDate && e.date <= dateStr && e.endDate >= dateStr)
+   252→    );
+   253→  };
+   254→
+   255→  const navigateMonth = (direction: number) => {
+   256→    setCurrentMonth(
+   257→      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + direction, 1)
+   258→    );
+   259→  };
+   260→
+   261→  const daysInMonth = getDaysInMonth(currentMonth);
+   262→
+   263→  return (
+   264→    <PublicLayout>
+   265→      {/* Page Header */}
+   266→      <section className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-violet-800 py-20 lg:py-28 overflow-hidden">
+   267→        <div className="absolute inset-0 overflow-hidden">
+   268→          <div className="absolute top-20 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+   269→          <div className="absolute bottom-10 left-10 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl" />
+   270→        </div>
+   271→
+   272→        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+   273→          <motion.div
+   274→            initial={{ opacity: 0, y: 30 }}
+   275→            animate={{ opacity: 1, y: 0 }}
+   276→            transition={{ duration: 0.8 }}
+   277→          >
+   278→            <PageHeader
+   279→              title="Événements"
+   280→              description="Découvrez nos prochains rassemblements, retraites et activités communautaires."
+   281→              breadcrumbs={[{ label: "Événements" }]}
+   282→              className="text-white [&_h1]:text-white [&_p]:text-white/80 [&_li]:text-white/60 [&_a]:text-white hover:[&_a]:text-white"
+   283→            />
+   284→          </motion.div>
+   285→        </div>
+   286→
+   287→        {/* Wave divider */}
+   288→        <div className="absolute bottom-0 left-0 right-0">
+   289→          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+   290→            <path
+   291→              d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
+   292→              fill="currentColor"
+   293→              className="text-background"
+   294→            />
+   295→          </svg>
+   296→        </div>
+   297→      </section>
+   298→
+   299→      {/* Calendar Section */}
+   300→      <section className="py-12 border-b border-border">
+   301→        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+   302→          <motion.div
+   303→            initial={{ opacity: 0, y: 20 }}
+   304→            animate={{ opacity: 1, y: 0 }}
+   305→            transition={{ duration: 0.5 }}
+   306→          >
+   307→            <Card className="max-w-2xl mx-auto">
+   308→              <CardContent className="p-6">
+   309→                {/* Calendar header */}
+   310→                <div className="flex items-center justify-between mb-6">
+   311→                  <Button
+   312→                    variant="ghost"
+   313→                    size="icon"
+   314→                    onClick={() => navigateMonth(-1)}
+   315→                    aria-label="Mois précédent"
+   316→                  >
+   317→                    <ChevronLeft className="w-5 h-5" />
+   318→                  </Button>
+   319→                  
+   320→                  <h3 className="font-serif text-xl font-semibold capitalize">
+   321→                    {currentMonth.toLocaleDateString("fr-FR", {
+   322→                      month: "long",
+   323→                      year: "numeric",
+   324→                    })}
+   325→                  </h3>
+   326→                  
+   327→                  <Button
+   328→                    variant="ghost"
+   329→                    size="icon"
+   330→                    onClick={() => navigateMonth(1)}
+   331→                    aria-label="Mois suivant"
+   332→                  >
+   333→                    <ChevronRight className="w-5 h-5" />
+   334→                  </Button>
+   335→                </div>
+   336→
+   337→                {/* Day headers */}
+   338→                <div className="grid grid-cols-7 gap-1 mb-2">
+   339→                  {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
+   340→                    <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
+   341→                      {day}
+   342→                    </div>
+   343→                  ))}
+   344→                </div>
+   345→
+   346→                {/* Calendar grid */}
+   347→                <div className="grid grid-cols-7 gap-1">
+   348→                  {daysInMonth.map((day, index) => {
+   349→                    const event = hasEventOnDay(day || 0);
+   350→                    const isToday = day === new Date().getDate() &&
+   351→                      currentMonth.getMonth() === new Date().getMonth() &&
+   352→                      currentMonth.getFullYear() === new Date().getFullYear();
+   353→
+   354→                    return (
+   355→                      <button
+   356→                        key={index}
+   357→                        disabled={!day}
+   358→                        className={`aspect-square p-1 rounded-lg text-sm transition-colors ${
+   359→                          !day
+   360→                            ? "invisible"
+   361→                            : `hover:bg-accent ${isToday ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`
+   362→                        }`}
+   363→                        onClick={() => day && console.log(`Selected day: ${day}`)}
+   364→                      >
+   365→                        <span className={`${isToday ? "font-bold" : ""}`}>{day}</span>
+   366→                        {event && (
+   367→                          <span className="block w-1.5 h-1.5 rounded-full bg-primary mx-auto mt-0.5" />
+   368→                        )}
+   369→                      </button>
+   370→                    );
+   371→                  })}
+   372→                </div>
+   373→              </CardContent>
+   374→            </Card>
+   375→          </motion.div>
+   376→        </div>
+   377→      </section>
+   378→
+   379→      {/* Filters & Search */}
+   380→      <section className="py-8 bg-muted/30 sticky top-16 lg:top-20 z-30 backdrop-blur-sm">
+   381→        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+   382→          <div className="flex flex-col gap-4">
+   383→            {/* Search bar */}
+   384→            <div className="relative flex-1 max-w-xl">
+   385→              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+   386→              <Input
+   387→                type="search"
+   388→                placeholder="Rechercher un événement..."
+   389→                value={searchQuery}
+   390→                onChange={(e) => setSearchQuery(e.target.value)}
+   391→                className="pl-12 pr-4 h-12 rounded-xl"
+   392→              />
+   393→              {searchQuery && (
+   394→                <button
+   395→                  onClick={() => setSearchQuery("")}
+   396→                  className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+   397→                >
+   398→                  <X className="w-3 h-3" />
+   399→                </button>
+   400→              )}
+   401→            </div>
+   402→
+   403→            {/* Filter controls */}
+   404→            <div className="flex flex-wrap items-center justify-between gap-4">
+   405→              <div className="flex items-center gap-2">
+   406→                {/* Type filter tabs */}
+   407→                <Tabs
+   408→                  value={filterType}
+   409→                  onValueChange={(v) => setFilterType(v as typeof filterType)}
+   410→                >
+   411→                  <TabsList className="rounded-lg">
+   412→                    <TabsTrigger value="upcoming" className="rounded-md px-4">
+   413→                      À venir
+   414→                    </TabsTrigger>
+   415→                    <TabsTrigger value="past" className="rounded-md px-4">
+   416→                      Passés
+   417→                    </TabsTrigger>
+   418→                    <TabsTrigger value="all" className="rounded-md px-4">
+   419→                      Tous
+   420→                    </TabsTrigger>
+   421→                  </TabsList>
+   422→                </Tabs>
+   423→
+   424→                <Separator orientation="vertical" className="h-8 hidden sm:block" />
+   425→
+   426→                {/* Category pills */}
+   427→                <div className="hidden md:flex flex-wrap gap-2">
+   428→                  {categories.slice(0, 5).map((cat) => (
+   429→                    <Button
+   430→                      key={cat}
+   431→                      variant={selectedCategory === cat ? "default" : "outline"}
+   432→                      size="sm"
+   433→                      onClick={() => setSelectedCategory(cat)}
+   434→                      className={`rounded-full text-xs ${
+   435→                        selectedCategory === cat
+   436→                          ? "gradient-spiritual text-white border-0"
+   437→                          : ""
+   438→                      }`}
+   439→                    >
+   440→                      {cat}
+   441→                    </Button>
+   442→                  ))}
+   443→                </div>
+   444→              </div>
+   445→
+   446→              <div className="flex items-center gap-3">
+   447→                <span className="text-sm text-muted-foreground hidden sm:block">
+   448→                  {filteredEvents.length} événement{filteredEvents.length > 1 ? "s" : ""}
+   449→                </span>
+   450→
+   451→                <div className="hidden sm:flex items-center border rounded-lg p-1">
+   452→                  <Button
+   453→                    variant={viewMode === "grid" ? "secondary" : "ghost"}
+   454→                    size="sm"
+   455→                    onClick={() => setViewMode("grid")}
+   456→                    className="rounded-md px-3"
+   457→                  >
+   458→                    <Grid3X3 className="w-4 h-4" />
+   459→                  </Button>
+   460→                  <Button
+   461→                    variant={viewMode === "list" ? "secondary" : "ghost"}
+   462→                    size="sm"
+   463→                    onClick={() => setViewMode("list")}
+   464→                    className="rounded-md px-3"
+   465→                  >
+   466→                    <List className="w-4 h-4" />
+   467→                  </Button>
+   468→                </div>
+   469→              </div>
+   470→            </div>
+   471→          </div>
+   472→        </div>
+   473→      </section>
+   474→
+   475→      {/* Events List */}
+   476→      <section className="py-12">
+   477→        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+   478→          {filteredEvents.length > 0 ? (
+   479→            viewMode === "grid" ? (
+   480→              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+   481→                {filteredEvents.map((event, index) => (
+   482→                  <motion.div
+   483→                    key={event.id}
+   484→                    initial={{ opacity: 0, y: 20 }}
+   485→                    animate={{ opacity: 1, y: 0 }}
+   486→                    transition={{ delay: index * 0.05, duration: 0.4 }}
+   487→                  >
+   488→                    <Link href={`/evenements/${event.id}`}>
+   489→                      <Card className="group overflow-hidden h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+   490→                        {/* Event image placeholder */}
+   491→                        <div className={`aspect-[16/9] bg-gradient-to-br ${categoryGradient[event.category] || 'from-gray-500 to-gray-600'} relative overflow-hidden`}>
+   492→                          <div className="absolute inset-0 flex items-center justify-center">
+   493→                            <CalendarIcon className="w-16 h-16 text-white/30" />
+   494→                          </div>
+   495→
+   496→                          {!event.isUpcoming && (
+   497→                            <Badge className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white border-0">
+   498→                              Terminé
+   499→                            </Badge>
+   500→                          )}
+   501→
+   502→                          {/* Date badge */}
+   503→                          <div className="absolute bottom-3 left-3 bg-white rounded-lg p-2 text-center shadow-md">
+   504→                            <p className="text-xs font-medium text-muted-foreground uppercase">
+   505→                              {new Date(event.date).toLocaleDateString("fr-FR", { month: "short" })}
+   506→                            </p>
+   507→                            <p className="text-xl font-bold text-foreground leading-none">
+   508→                              {new Date(event.date).getDate()}
+   509→                            </p>
+   510→                          </div>
+   511→
+   512→                          <Badge 
+   513→                            className={`absolute top-3 right-3 ${categoryColors[event.category] || ''} border-0`}
+   514→                          >
+   515→                            {event.category}
+   516→                          </Badge>
+   517→                        </div>
+   518→
+   519→                        <CardContent className="p-5">
+   520→                          <h3 className="font-semibold text-lg text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+   521→                            {event.title}
+   522→                          </h3>
+   523→                          
+   524→                          <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+   525→                            {event.description}
+   526→                          </p>
+   527→
+   528→                          <div className="space-y-2 text-sm text-muted-foreground mb-4">
+   529→                            <div className="flex items-center gap-2">
+   530→                              <Clock className="w-4 h-4 text-primary shrink-0" />
+   531→                              {event.time}
+   532→                              {event.endTime && ` - ${event.endTime}`}
+   533→                            </div>
+   534→                            <div className="flex items-center gap-2">
+   535→                              <MapPin className="w-4 h-4 text-primary shrink-0" />
+   536→                              <span className="truncate">{event.location}</span>
+   537→                            </div>
+   538→                          </div>
+   539→
+   540→                          {event.maxSpots && event.isUpcoming && (
+   541→                            <div className="pt-3 border-t border-border">
+   542→                              <div className="flex items-center justify-between text-sm mb-2">
+   543→                                <span className="text-muted-foreground">Places</span>
+   544→                                <span className="font-medium text-foreground">
+   545→                                  {event.maxSpots - event.registeredCount} restantes
+   546→                                </span>
+   547→                              </div>
+   548→                              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+   549→                                <div
+   550→                                  className="h-full gradient-spiritual rounded-full transition-all"
+   551→                                  style={{
+   552→                                    width: `${(event.registeredCount / event.maxSpots) * 100}%`,
+   553→                                  }}
+   554→                                />
+   555→                              </div>
+   556→                            </div>
+   557→                          )}
+   558→                        </CardContent>
+   559→                      </Card>
+   560→                    </Link>
+   561→                  </motion.div>
+   562→                ))}
+   563→              </div>
+   564→            ) : (
+   565→              /* List view */
+   566→              <div className="space-y-4 max-w-4xl mx-auto">
+   567→                {filteredEvents.map((event, index) => (
+   568→                  <motion.div
+   569→                    key={event.id}
+   570→                    initial={{ opacity: 0, x: -20 }}
+   571→                    animate={{ opacity: 1, x: 0 }}
+   572→                    transition={{ delay: index * 0.05, duration: 0.4 }}
+   573→                  >
+   574→                    <Link href={`/evenements/${event.id}`}>
+   575→                      <Card className="group overflow-hidden hover:shadow-md transition-all duration-300">
+   576→                        <CardContent className="p-4 flex gap-4">
+   577→                          {/* Date column */}
+   578→                          <div className="w-20 shrink-0 text-center bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-3 flex flex-col items-center justify-center">
+   579→                            <p className="text-xs font-medium text-muted-foreground uppercase">
+   580→                              {new Date(event.date).toLocaleDateString("fr-FR", { month: "short" })}
+   581→                            </p>
+   582→                            <p className="text-2xl font-bold text-foreground leading-none">
+   583→                              {new Date(event.date).getDate()}
+   584→                            </p>
+   585→                          </div>
+   586→
+   587→                          {/* Content */}
+   588→                          <div className="flex-1 min-w-0 py-1">
+   589→                            <div className="flex items-start justify-between gap-2 mb-1">
+   590→                              <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+   591→                                {event.title}
+   592→                              </h3>
+   593→                              <div className="flex items-center gap-2 shrink-0">
+   594→                                {!event.isUpcoming && (
+   595→                                  <Badge variant="secondary" className="text-xs">Terminé</Badge>
+   596→                                )}
+   597→                                <Badge 
+   598→                                  variant="outline" 
+   599→                                  className={`text-xs ${categoryColors[event.category] || ''}`}
+   600→                                >
+   601→                                  {event.category}
+   602→                                </Badge>
+   603→                              </div>
+   604→                            </div>
+   605→
+   606→                            <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
+   607→                              {event.description}
+   608→                            </p>
+   609→
+   610→                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+   611→                              <span className="flex items-center gap-1">
+   612→                                <Clock className="w-3.5 h-3.5" />
+   613→                                {event.time}
+   614→                              </span>
+   615→                              <span className="flex items-center gap-1">
+   616→                                <MapPin className="w-3.5 h-3.5" />
+   617→                                {event.location}
+   618→                              </span>
+   619→                              {event.maxSpots && event.isUpcoming && (
+   620→                                <span className="flex items-center gap-1">
+   621→                                  <Users className="w-3.5 h-3.5" />
+   622→                                  {event.maxSpots - event.registeredCount} places
+   623→                                </span>
+   624→                              )}
+   625→                            </div>
+   626→                          </div>
+   627→                        </CardContent>
+   628→                      </Card>
+   629→                    </Link>
+   630→                  </motion.div>
+   631→                ))}
+   632→              </div>
+   633→            )
+   634→          ) : (
+   635→            /* Empty state */
+   636→            <div className="text-center py-16">
+   637→              <CalendarIcon className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+   638→              <h3 className="font-serif text-xl font-semibold text-foreground mb-2">
+   639→                Aucun événement trouvé
+   640→              </h3>
+   641→              <p className="text-muted-foreground mb-6">
+   642→                Essayez de modifier vos critères de recherche ou de filtres.
+   643→              </p>
+   644→              <Button
+   645→                variant="outline"
+   646→                onClick={() => {
+   647→                  setSearchQuery("");
+   648→                  setSelectedCategory("Tous");
+   649→                  setFilterType("upcoming");
+   650→                }}
+   651→                className="rounded-xl"
+   652→              >
+   653→                Réinitialiser les filtres
+   654→              </Button>
+   655→            </div>
+   656→          )}
+   657→        </div>
+   658→      </section>
+   659→    </PublicLayout>
+   660→  );
+   661→}
+   662→

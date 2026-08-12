@@ -1,0 +1,677 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import React, { useState, useEffect } from "react";
+     4→     4→import Link from "next/link";
+     5→     5→import { motion, AnimatePresence } from "framer-motion";
+     6→     6→import {
+     7→     7→  Radio,
+     8→     8→  Users,
+     9→     9→  Clock,
+    10→    10→  Calendar,
+    11→    11→  MessageCircle,
+    12→    12→  Send,
+    13→    13→  Heart,
+    14→    14→  Share2,
+    15→    15→  Volume2,
+    16→    16→  VolumeX,
+    17→    17→  Maximize,
+    18→    18→  Play,
+    19→    19→  Pause,
+    20→    20→  ChevronRight,
+    21→    21→  Bell,
+    22→    22→  BellOff,
+    23→    23→  Sparkles,
+    24→    24→  Music,
+    25→    25→} from "lucide-react";
+    26→    26→import { PublicLayout } from "@/components/layouts/public-layout";
+    27→    27→import { PageHeader } from "@/components/shared/page-header";
+    28→    28→import { Button } from "@/components/ui/button";
+    29→    29→import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+    30→    30→import { Badge } from "@/components/ui/badge";
+    31→    31→import { Input } from "@/components/ui/input";
+    32→    32→import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+    33→    33→import { Separator } from "@/components/ui/separator";
+    34→    34→
+    35→    35→// Mock data
+    36→    36→const currentStream = {
+    37→    37→  title: "Culte du Dimanche - Matin",
+    38→    38→  preacher: "Pasteur Marc Dupont",
+    39→    39→  description: "Série : 'Marcher dans la lumière'",
+    40→    40→  startedAt: "10h03",
+    41→    41→  viewers: 347,
+    42→    42→};
+    43→    43→
+    44→    44→const upcomingStreams = [
+    45→    45→  {
+    46→    46→    id: 1,
+    47→    47→    title: "Culte du Soir",
+    48→    48→    date: "Aujourd'hui",
+    49→    49→    time: "14h30",
+    50→    50→    preacher: "Pasteur Sophie Martin",
+    51→    51→  },
+    52→    52→  {
+    53→    53→    id: 2,
+    54→    54→    title: "Culte du Dimanche - Matin",
+    55→    55→    date: "Dimanche prochain",
+    56→    56→    time: "10h00",
+    57→    57→    preacher: "Pasteur Jean-Pierre Laurent",
+    58→    58→  },
+    59→    59→  {
+    60→    60→    id: 3,
+    61→    61→    title: "Soirée Louange Spéciale",
+    62→    62→    date: "30 Août 2025",
+    63→    63→    time: "19h00",
+    64→    64→    preacher: "Équipe de Louange",
+    65→    65→  },
+    66→    66→];
+    67→    67→
+    68→    68→// Mock chat messages
+    69→    69→const initialMessages = [
+    70→    70→  { id: 1, user: "Marie D.", message: "Gloire à Dieu pour ce culte ! 🙌", time: "10h05" },
+    71→    71→  { id: 2, user: "Pierre M.", message: "Bonjour à tous depuis Lyon !", time: "10h06" },
+    72→    72→  { id: 3, user: "Sophie L.", message: "La louange est magnifique aujourd'hui", time: "10h08" },
+    73→    73→  { id: 4, user: "Thomas B.", message: "Première fois en live, je suis béni !", time: "10h09" },
+    74→    74→  { id: 5, user: "Isabelle R.", message: "Quelqu'un d'autre de la région Parisienne ?", time: "10h10" },
+    75→    75→];
+    76→    76→
+    77→    77→export default function LivePage() {
+    78→    78→  const [isLive, setIsLive] = useState(true);
+    79→    79→  const [isPlaying, setIsPlaying] = useState(true);
+    80→    80→  const [isMuted, setIsMuted] = useState(false);
+    81→    81→  const [hasNotifications, setHasNotifications] = useState(true);
+    82→    82→  const [messages, setMessages] = useState(initialMessages);
+    83→    83→  const [newMessage, setNewMessage] = useState("");
+    84→    84→  const [viewerCount, setViewerCount] = useState(currentStream.viewers);
+    85→    85→
+    86→    86→  // Simulate viewer count changes
+    87→    87→  useEffect(() => {
+    88→    88→    if (!isLive) return;
+    89→    89→    
+    90→    90→    const interval = setInterval(() => {
+    91→    91→      setViewerCount((prev) => prev + Math.floor(Math.random() * 5) - 2);
+    92→    92→    }, 5000);
+    93→    93→
+    94→    94→    return () => clearInterval(interval);
+    95→    95→  }, [isLive]);
+    96→    96→
+    97→    97→  // Simulate new messages occasionally
+    98→    98→  useEffect(() => {
+    99→    99→    if (!isLive) return;
+   100→   100→
+   101→   101→    const autoMessages = [
+   102→   102→      { user: "François D.", message: "Alléluia ! 🔥" },
+   103→   103→      { user: "Claire P.", message: "Merci Seigneur pour Ta Parole" },
+   104→   104→      { user: "Jean-Luc M.", message: "Depuis Toulouse, je me sens connecté !" },
+   105→   105→    ];
+   106→   106→
+   107→   107→    let msgIndex = 0;
+   108→   108→    const interval = setInterval(() => {
+   109→   109→      if (msgIndex < autoMessages.length) {
+   110→   110→        const now = new Date();
+   111→   111→        const timeStr = `${now.getHours()}h${String(now.getMinutes()).padStart(2, "0")}`;
+   112→   112→        
+   113→   113→        setMessages((prev) => [
+   114→   114→          ...prev.slice(-8), // Keep last 8 messages
+   115→   115→          {
+   116→   116→            id: Date.now(),
+   117→   117→            ...autoMessages[msgIndex],
+   118→   118→            time: timeStr,
+   119→   119→          },
+   120→   120→        ]);
+   121→   121→        msgIndex++;
+   122→   122→      }
+   123→   123→    }, 15000);
+   124→   124→
+   125→   125→    return () => clearInterval(interval);
+   126→   126→  }, [isLive]);
+   127→   127→
+   128→   128→  const handleSendMessage = (e: React.FormEvent) => {
+   129→   129→    e.preventDefault();
+   130→   130→    if (!newMessage.trim()) return;
+   131→   131→
+   132→   132→    const now = new Date();
+   133→   133→    const timeStr = `${now.getHours()}h${String(now.getMinutes()).padStart(2, "0")}`;
+   134→   134→
+   135→   135→    setMessages((prev) => [
+   136→   136→      ...prev,
+   137→   137→      {
+   138→   138→        id: Date.now(),
+   139→   139→        user: "Vous",
+   140→   140→        message: newMessage.trim(),
+   141→   141→        time: timeStr,
+   142→   142→      },
+   143→   143→    ]);
+   144→   144→    setNewMessage("");
+   145→   145→  };
+   146→   146→
+   147→   147→  return (
+   148→   148→    <PublicLayout>
+   149→   149→      {/* Hero Section */}
+   150→   150→      <section className="relative bg-gradient-to-br from-red-600 via-rose-600 to-red-800 py-16 lg:py-20 overflow-hidden">
+   151→   151→        <div className="absolute inset-0 overflow-hidden">
+   152→   152→          <div className="absolute top-20 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
+   153→   153→          <div className="absolute bottom-10 left-10 w-96 h-96 bg-black/20 rounded-full blur-3xl" />
+   154→   154→          
+   155→   155→          {/* Animated signal waves */}
+   156→   156→          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+   157→   157→            {[...Array(3)].map((_, i) => (
+   158→   158→              <div
+   159→   159→                key={i}
+   160→   160→                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/30"
+   161→   161→                style={{
+   162→   162→                  width: `${200 + i * 150}px`,
+   163→   163→                  height: `${200 + i * 150}px`,
+   164→   164→                  animation: `pulse ${2 + i * 0.5}s ease-in-out infinite`,
+   165→   165→                  animationDelay: `${i * 0.3}s`,
+   166→   166→                }}
+   167→   167→              />
+   168→   168→            ))}
+   169→   169→          </div>
+   170→   170→        </div>
+   171→   171→
+   172→   172→        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+   173→   173→          <motion.div
+   174→   174→            initial={{ opacity: 0, y: 30 }}
+   175→   175→            animate={{ opacity: 1, y: 0 }}
+   176→   176→            transition={{ duration: 0.8 }}
+   177→   177→            className="text-center"
+   178→   178→          >
+   179→   179→            <AnimatePresence mode="wait">
+   180→   180→              {isLive ? (
+   181→   181→                <motion.div
+   182→   182→                  key="live"
+   183→   183→                  initial={{ opacity: 0, scale: 0.9 }}
+   184→   184→                  animate={{ opacity: 1, scale: 1 }}
+   185→   185→                  exit={{ opacity: 0, scale: 0.9 }}
+   186→   186→                >
+   187→   187→                  <Badge className="mb-6 bg-white text-red-600 hover:bg-white/90 px-5 py-2 text-base font-semibold shadow-lg">
+   188→   188→                    <span className="w-3 h-3 bg-red-500 rounded-full mr-2 animate-pulse" />
+   189→   189→                    EN DIRECT
+   190→   190→                  </Badge>
+   191→   191→                  
+   192→   192→                  <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+   193→   193→                    {currentStream.title}
+   194→   194→                  </h1>
+   195→   195→                  
+   196→   196→                  <p className="text-lg text-white/80 mb-6">
+   197→   197→                    avec {currentStream.preacher}
+   198→   198→                  </p>
+   199→   199→                  
+   200→   200→                  <div className="flex items-center justify-center gap-6 text-white/70">
+   201→   201→                    <span className="flex items-center gap-2">
+   202→   202→                      <Clock className="w-5 h-5" />
+   203→   203→                      Commencé à {currentStream.startedAt}
+   204→   204→                    </span>
+   205→   205→                    <span className="flex items-center gap-2">
+   206→   206→                      <Users className="w-5 h-5" />
+   207→   207→                      {viewerCount} spectateurs
+   208→   208→                    </span>
+   209→   209→                  </div>
+   210→   210→
+   211→   211→                  <div className="mt-8 flex items-center justify-center gap-3">
+   212→   212→                    <Button
+   213→   213→                      variant="secondary"
+   214→   214→                      size="lg"
+   215→   215→                      onClick={() => setIsPlaying(!isPlaying)}
+   216→   216→                      className="bg-white text-red-600 hover:bg-white/90 rounded-xl px-6"
+   217→   217→                    >
+   218→   218→                      {isPlaying ? (
+   219→   219→                        <>
+   220→   220→                          <Pause className="mr-2 w-5 h-5" />
+   221→   221→                          Pause
+   222→   222→                        </>
+   223→   223→                      ) : (
+   224→   224→                        <>
+   225→   225→                          <Play className="mr-2 w-5 h-5" />
+   226→   226→                          Reprendre
+   227→   227→                        </>
+   228→   228→                      )}
+   229→   229→                    </Button>
+   230→   230→                    
+   231→   231→                    <Button
+   232→   232→                      variant="outline"
+   233→   233→                      size="lg"
+   234→   234→                      onClick={() => setHasNotifications(!hasNotifications)}
+   235→   235→                      className={`border-white/40 text-white hover:bg-white/10 rounded-xl ${
+   236→   236→                        hasNotifications ? "" : "opacity-60"
+   237→   237→                      }`}
+   238→   238→                    >
+   239→   239→                      {hasNotifications ? (
+   240→   240→                        <>
+   241→   241→                          <Bell className="mr-2 w-5 h-5" />
+   242→   242→                          Notifications ON
+   243→   243→                        </>
+   244→   244→                      ) : (
+   245→   245→                        <>
+   246→   246→                          <BellOff className="mr-2 w-5 h-5" />
+   247→   247→                          Notifications OFF
+   248→   248→                        </>
+   249→   249→                      )}
+   250→   250→                    </Button>
+   251→   251→                  </div>
+   252→   252→                </motion.div>
+   253→   253→              ) : (
+   254→   254→                <motion.div
+   255→   255→                  key="offline"
+   256→   256→                  initial={{ opacity: 0, scale: 0.9 }}
+   257→   257→                  animate={{ opacity: 1, scale: 1 }}
+   258→   258→                  exit={{ opacity: 0, scale: 0.9 }}
+   259→   259→                >
+   260→   260→                  <Radio className="w-20 h-20 text-white/30 mx-auto mb-6" />
+   261→   261→                  <Badge variant="secondary" className="mb-6 bg-white/10 text-white border-white/30 px-5 py-2">
+   262→   262→                    HORS LIGNE
+   263→   263→                  </Badge>
+   264→   264→                  
+   265→   265→                  <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+   266→   266→                    Pas de Diffusion en Cours
+   267→   267→                  </h1>
+   268→   268→                  
+   269→   269→                  <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
+   270→   270→                    Le prochain direct débutera bientôt. Restez connecté ou consultez 
+   271→   271→                    notre programme des prochains événements.
+   272→   272→                  </p>
+   273→   273→
+   274→   274→                  <Button size="lg" asChild className="bg-white text-violet-700 hover:bg-white/90 rounded-xl">
+   275→   275→                    <Link href="/evenements">
+   276→   276→                      Voir le programme
+   277→   277→                      <ChevronRight className="ml-2 w-5 h-5" />
+   278→   278→                    </Link>
+   279→   279→                  </Button>
+   280→   280→                </motion.div>
+   281→   281→              )}
+   282→   282→            </AnimatePresence>
+   283→   283→          </motion.div>
+   284→   284→        </div>
+   285→   285→
+   286→   286→        {/* Wave divider */}
+   287→   287→        <div className="absolute bottom-0 left-0 right-0">
+   288→   288→          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+   289→   289→            <path
+   290→   290→              d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
+   291→   291→              fill="currentColor"
+   292→   292→              className="text-background"
+   293→   293→            />
+   294→   294→          </svg>
+   295→   295→        </div>
+   296→   296→      </section>
+   297→   297→
+   298→   298→      {/* Main Content */}
+   299→   299→      <section className="py-12">
+   300→   300→        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+   301→   301→          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+   302→   302→            {/* Video Player Area */}
+   303→   303→            <div className="lg:col-span-2 space-y-6">
+   304→   304→              <motion.div
+   305→   305→                initial={{ opacity: 0, y: 20 }}
+   306→   306→                animate={{ opacity: 1, y: 0 }}
+   307→   307→                transition={{ delay: 0.2, duration: 0.5 }}
+   308→   308→              >
+   309→   309→                <Card className="overflow-hidden">
+   310→   310→                  {/* Video placeholder */}
+   311→   311→                  <div className="aspect-video bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative flex items-center justify-center cursor-pointer group"
+   312→   312→                    onClick={() => isLive && setIsPlaying(!isPlaying)}
+   313→   313→                  >
+   314→   314→                    {!isLive ? (
+   315→   315→                      /* Offline state */
+   316→   316→                      <div className="text-center text-white/50 p-8">
+   317→   317→                        <Radio className="w-24 h-24 mx-auto mb-4 opacity-30" />
+   318→   318→                        <p className="text-xl font-medium">Diffusion terminée</p>
+   319→   319→                        <p className="text-sm mt-2">Le replay sera disponible prochainement</p>
+   320→   320→                      </div>
+   321→   321→                    ) : !isPlaying ? (
+   322→   322→                      /* Paused state */
+   323→   323→                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+   324→   324→                        <div className="text-center text-white">
+   325→   325→                          <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+   326→   326→                            <Play className="w-12 h-12 ml-2" />
+   327→   327→                          </div>
+   328→   328→                          <p>Diffusion en pause</p>
+   329→   329→                          <p className="text-sm text-white/60 mt-1">Cliquez pour reprendre</p>
+   330→   330→                        </div>
+   331→   331→                      </div>
+   332→   332→                    ) : (
+   333→   333→                      /* Playing state */
+   334→   334→                      <>
+   335→   335→                        <div className="absolute inset-0 flex items-center justify-center">
+   336→   336→                          <Music className="w-32 h-32 text-white/10" />
+   337→   337→                          
+   338→   338→                          {/* Simulated visualizer bars */}
+   339→   339→                          <div className="absolute bottom-16 left-8 right-8 flex items-end justify-center gap-1 h-20">
+   340→   340→                            {[...Array(30)].map((_, i) => (
+   341→   341→                              <div
+   342→   342→                                key={i}
+   343→   343→                                className="flex-1 max-w-2 bg-gradient-to-t from-primary to-purple-400 rounded-t-sm opacity-60"
+   344→   344→                                style={{
+   345→   345→                                  height: `${Math.random() * 100}%`,
+   346→   346→                                  animation: `pulse ${0.5 + Math.random() * 0.5}s ease-in-out infinite alternate`,
+   347→   347→                                  animationDelay: `${i * 0.05}s`,
+   348→   348→                                }}
+   349→   349→                              />
+   350→   350→                            ))}
+   351→   351→                          </div>
+   352→   352→                        </div>
+   353→   353→
+   354→   354→                        {/* Live badge overlay */}
+   355→   355→                        <div className="absolute top-4 left-4 flex items-center gap-2">
+   356→   356→                          <Badge className="bg-red-600 text-white border-0 px-3 py-1 animate-pulse">
+   357→   357→                            <span className="w-2 h-2 bg-white rounded-full mr-1.5" />
+   358→   358→                            LIVE
+   359→   359→                          </Badge>
+   360→   360→                          <Badge variant="secondary" className="bg-black/50 text-white border-0 backdrop-blur-sm">
+   361→   361→                            {viewerCount} spectateurs
+   362→   362→                          </Badge>
+   363→   363→                        </div>
+   364→   364→
+   365→   365→                        {/* Controls overlay */}
+   366→   366→                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+   367→   367→                          <div className="flex items-center justify-between">
+   368→   368→                            <div className="flex items-center gap-3">
+   369→   369→                              <Button
+   370→   370→                                variant="ghost"
+   371→   371→                                size="icon"
+   372→   372→                                onClick={(e) => {
+   373→   373→                                  e.stopPropagation();
+   374→   374→                                  setIsPlaying(false);
+   375→   375→                                }}
+   376→   376→                                className="text-white hover:bg-white/20"
+   377→   377→                              >
+   378→   378→                                <Pause className="w-5 h-5" />
+   379→   379→                              </Button>
+   380→   380→                              
+   381→   381→                              <Button
+   382→   382→                                variant="ghost"
+   383→   383→                                size="icon"
+   384→   384→                                onClick={(e) => {
+   385→   385→                                  e.stopPropagation();
+   386→   386→                                  setIsMuted(!isMuted);
+   387→   387→                                }}
+   388→   388→                                className="text-white hover:bg-white/20"
+   389→   389→                              >
+   390→   390→                                {isMuted ? (
+   391→   391→                                  <VolumeX className="w-5 h-5" />
+   392→   392→                                ) : (
+   393→   393→                                  <Volume2 className="w-5 h-5" />
+   394→   394→                                )}
+   395→   395→                              </Button>
+   396→   396→                            </div>
+   397→   397→
+   398→   398→                            <Button
+   399→   399→                              variant="ghost"
+   400→   400→                              size="icon"
+   401→   401→                              className="text-white hover:bg-white/20"
+   402→   402→                            >
+   403→   403→                              <Maximize className="w-5 h-5" />
+   404→   404→                            </Button>
+   405→   405→                          </div>
+   406→   406→                        </div>
+   407→   407→                      </>
+   408→   408→                    )}
+   409→   409→                  </div>
+   410→   410→
+   411→   411→                  {/* Video info bar */}
+   412→   412→                  <CardContent className="p-4">
+   413→   413→                    <div className="flex items-start justify-between gap-4">
+   414→   414→                      <div>
+   415→   415→                        <h3 className="font-semibold text-foreground">{currentStream.title}</h3>
+   416→   416→                        <p className="text-sm text-muted-foreground">{currentStream.description}</p>
+   417→   417→                      </div>
+   418→   418→                      <div className="flex items-center gap-2 shrink-0">
+   419→   419→                        <Button variant="ghost" size="sm" className="text-muted-foreground">
+   420→   420→                          <Heart className="w-4 h-4 mr-1" />
+   421→   421→                          J'aime
+   422→   422→                        </Button>
+   423→   423→                        <Button variant="ghost" size="sm" className="text-muted-foreground">
+   424→   424→                          <Share2 className="w-4 h-4 mr-1" />
+   425→   425→                          Partager
+   426→   426→                        </Button>
+   427→   427→                      </div>
+   428→   428→                    </div>
+   429→   429→                  </CardContent>
+   430→   430→                </Card>
+   431→   431→              </motion.div>
+   432→   432→
+   433→   433→              {/* Chat Section */}
+   434→   434→              {isLive && (
+   435→   435→                <motion.div
+   436→   436→                  initial={{ opacity: 0, y: 20 }}
+   437→   437→                  animate={{ opacity: 1, y: 0 }}
+   438→   438→                  transition={{ delay: 0.3, duration: 0.5 }}
+   439→   439→                >
+   440→   440→                  <Card className="h-[400px] flex flex-col">
+   441→   441→                    <CardHeader className="pb-3">
+   442→   442→                      <CardTitle className="flex items-center gap-2 text-lg">
+   443→   443→                        <MessageCircle className="w-5 h-5 text-primary" />
+   444→   444→                        Chat en Direct
+   445→   445→                        <Badge variant="secondary" className="ml-auto">
+   446→   446→                          {messages.length} messages
+   447→   447→                        </Badge>
+   448→   448→                      </CardTitle>
+   449→   449→                    </CardHeader>
+   450→   450→                    
+   451→   451→                    <Separator />
+   452→   452→
+   453→   453→                    {/* Messages area */}
+   454→   454→                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+   455→   455→                      {messages.map((msg) => (
+   456→   456→                        <div
+   457→   457→                          key={msg.id}
+   458→   458→                          className={`flex gap-3 ${msg.user === "Vous" ? "flex-row-reverse" : ""}`}
+   459→   459→                        >
+   460→   460→                          <Avatar className="w-8 h-8 shrink-0">
+   461→   461→                            <AvatarFallback
+   462→   462→                              className={`${
+   463→   463→                                msg.user === "Vous"
+   464→   464→                                  ? "gradient-spiritual text-white text-xs"
+   465→   465→                                  : "bg-muted text-xs"
+   466→   466→                              }`}
+   467→   467→                            >
+   468→   468→                              {msg.user.split(" ").map(n => n[0]).join("")}
+   469→   469→                            </AvatarFallback>
+   470→   470→                          </Avatar>
+   471→   471→                          <div
+   472→   472→                            className={`max-w-[75%] ${
+   473→   473→                              msg.user === "Vous" ? "text-right" : ""
+   474→   474→                            }`}
+   475→   475→                          >
+   476→   476→                            <div className="flex items-center gap-2 mb-1">
+   477→   477→                              <span
+   478→   478→                                className={`text-xs font-medium ${
+   479→   479→                                  msg.user === "Vous" ? "order-2" : ""
+   480→   480→                                } ${msg.user === "Vous" ? "text-primary" : "text-foreground"}`}
+   481→   481→                              >
+   482→   482→                                {msg.user}
+   483→   483→                              </span>
+   484→   484→                              <span className="text-xs text-muted-foreground">{msg.time}</span>
+   485→   485→                            </div>
+   486→   486→                            <div
+   487→   487→                              className={`inline-block px-3 py-2 rounded-2xl text-sm ${
+   488→   488→                                msg.user === "Vous"
+   489→   489→                                  ? "bg-primary text-primary-foreground"
+   490→   490→                                  : "bg-muted"
+   491→   491→                              }`}
+   492→   492→                            >
+   493→   493→                              {msg.message}
+   494→   494→                            </div>
+   495→   495→                          </div>
+   496→   496→                        </div>
+   497→   497→                      ))}
+   498→   498→                    </div>
+   499→   499→
+   500→   500→                    <Separator />
+   501→   501→
+   502→   502→                    {/* Input area */}
+   503→   503→                    <form onSubmit={handleSendMessage} className="p-4">
+   504→   504→                      <div className="flex gap-2">
+   505→   505→                        <Input
+   506→   506→                          type="text"
+   507→   507→                          value={newMessage}
+   508→   508→                          onChange={(e) => setNewMessage(e.target.value)}
+   509→   509→                          placeholder="Écrivez votre message..."
+   510→   510→                          className="rounded-xl"
+   511→   511→                          maxLength={250}
+   512→   512→                        />
+   513→   513→                        <Button
+   514→   514→                          type="submit"
+   515→   515→                          disabled={!newMessage.trim()}
+   516→   516→                          className="gradient-spiritual text-white hover:opacity-90 rounded-xl px-4"
+   517→   517→                        >
+   518→   518→                          <Send className="w-4 h-4" />
+   519→   519→                        </Button>
+   520→   520→                      </div>
+   521→   521→                      <p className="text-xs text-muted-foreground mt-2">
+   522→   522→                        Soyez respectueux et bienveillant dans vos échanges.
+   523→   523→                      </p>
+   524→   524→                    </form>
+   525→   525→                  </Card>
+   526→   526→                </motion.div>
+   527→   527→              )}
+   528→   528→            </div>
+   529→   529→
+   530→   530→            {/* Sidebar */}
+   531→   531→            <div className="space-y-6">
+   532→   532→              {/* Current info card */}
+   533→   533→              {isLive && (
+   534→   534→                <motion.div
+   535→   535→                  initial={{ opacity: 0, x: 20 }}
+   536→   536→                  animate={{ opacity: 1, x: 0 }}
+   537→   537→                  transition={{ delay: 0.35, duration: 0.5 }}
+   538→   538→                >
+   539→   539→                  <Card className="border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/10">
+   540→   540→                    <CardContent className="p-5">
+   541→   541→                      <div className="flex items-center gap-3 mb-4">
+   542→   542→                        <div className="relative">
+   543→   543→                          <div className="w-12 h-12 rounded-full gradient-spiritual flex items-center justify-center">
+   544→   544→                            <Radio className="w-6 h-6 text-white" />
+   545→   545→                          </div>
+   546→   546→                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-background animate-pulse" />
+   547→   547→                        </div>
+   548→   548→                        <div>
+   549→   549→                          <p className="font-semibold text-foreground">En direct maintenant</p>
+   550→   550→                          <p className="text-sm text-muted-foreground">{currentStream.startedAt}</p>
+   551→   551→                        </div>
+   552→   552→                      </div>
+   553→   553→
+   554→   554→                      <Separator className="my-4" />
+   555→   555→
+   556→   556→                      <div className="space-y-3">
+   557→   557→                        <div className="flex items-center justify-between">
+   558→   558→                          <span className="text-sm text-muted-foreground">Prédicateur</span>
+   559→   559→                          <span className="text-sm font-medium text-foreground">{currentStream.preacher}</span>
+   560→   560→                        </div>
+   561→   561→                        <div className="flex items-center justify-between">
+   562→   562→                          <span className="text-sm text-muted-foreground">Spectateurs</span>
+   563→   563→                          <span className="text-sm font-medium text-foreground flex items-center gap-1">
+   564→   564→                            <Users className="w-4 h-4 text-primary" />
+   565→   565→                            {viewerCount}
+   566→   566→                          </span>
+   567→   567→                        </div>
+   568→   568→                        <div className="flex items-center justify-between">
+   569→   569→                          <span className="text-sm text-muted-foreground">Série</span>
+   570→   570→                          <span className="text-sm font-medium text-foreground">{currentStream.description}</span>
+   571→   571→                        </div>
+   572→   572→                      </div>
+   573→   573→                    </CardContent>
+   574→   574→                  </Card>
+   575→   575→                </motion.div>
+   576→   576→              )}
+   577→   577→
+   578→   578→              {/* Upcoming streams */}
+   579→   579→              <motion.div
+   580→   580→                initial={{ opacity: 0, x: 20 }}
+   581→   581→                animate={{ opacity: 1, x: 0 }}
+   582→   582→                transition={{ delay: 0.4, duration: 0.5 }}
+   583→   583→              >
+   584→   584→                <Card>
+   585→   585→                  <CardHeader>
+   586→   586→                    <CardTitle className="flex items-center gap-2 text-lg">
+   587→   587→                      <Calendar className="w-5 h-5 text-primary" />
+   588→   588→                      Prochains Directs
+   589→   589→                    </CardTitle>
+   590→   590→                  </CardHeader>
+   591→   591→                  <CardContent className="pt-0">
+   592→   592→                    <div className="space-y-4">
+   593→   593→                      {upcomingStreams.map((stream, index) => (
+   594→   594→                        <div
+   595→   595→                          key={stream.id}
+   596→   596→                          className={`p-3 rounded-xl transition-colors hover:bg-accent ${
+   597→   597→                            index === 0 && isLive === false ? "border border-primary/30 bg-primary/5" : ""
+   598→   598→                          }`}
+   599→   599→                        >
+   600→   600→                          <div className="flex items-start gap-3">
+   601→   601→                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex flex-col items-center justify-center shrink-0">
+   602→   602→                              <span className="text-xs font-medium text-primary leading-none">
+   603→   603→                                {stream.date.split(" ")[0]?.substring(0, 3)}
+   604→   604→                              </span>
+   605→   605→                              <span className="text-sm font-bold text-foreground leading-none">
+   606→   606→                                {stream.date.split(" ")[1] || stream.time.split("h")[0]}
+   607→   607→                              </span>
+   608→   608→                            </div>
+   609→   609→                            <div className="flex-1 min-w-0">
+   610→   610→                              <h4 className="font-medium text-foreground text-sm line-clamp-1">
+   611→   611→                                {stream.title}
+   612→   612→                              </h4>
+   613→   613→                              <p className="text-xs text-muted-foreground mt-0.5">
+   614→   614→                                {stream.preacher}
+   615→   615→                              </p>
+   616→   616→                              <p className="text-xs text-primary font-medium mt-1">
+   617→   617→                                {stream.time}
+   618→   618→                              </p>
+   619→   619→                            </div>
+   620→   620→                          </div>
+   621→   621→                          
+   622→   622→                          {index === 0 && isLive === false && (
+   623→   623→                            <Button size="sm" variant="default" className="w-full mt-3 gradient-spiritual text-white rounded-lg">
+   624→   624→                              <Bell className="w-4 h-4 mr-1" />
+   625→   625→                              Me rappeler
+   626→   626→                            </Button>
+   627→   627→                          )}
+   628→   628→                        </div>
+   629→   629→                      ))}
+   630→   630→                    </div>
+   631→   631→                  </CardContent>
+   632→   632→                </Card>
+   633→   633→              </motion.div>
+   634→   634→
+   635→   635→              {/* How to watch */}
+   636→   636→              <motion.div
+   637→   637→                initial={{ opacity: 0, x: 20 }}
+   638→   638→                animate={{ opacity: 1, x: 0 }}
+   639→   639→                transition={{ delay: 0.45, duration: 0.5 }}
+   640→   640→              >
+   641→   641→                <Card>
+   642→   642→                  <CardHeader>
+   643→   643→                    <CardTitle className="flex items-center gap-2 text-lg">
+   644→   644→                      <Sparkles className="w-5 h-5 text-primary" />
+   645→   645→                      Comment Regarder ?
+   646→   646→                    </CardTitle>
+   647→   647→                  </CardHeader>
+   648→   648→                  <CardContent className="pt-0">
+   649→   649→                    <ul className="space-y-3 text-sm text-muted-foreground">
+   650→   650→                      <li className="flex items-start gap-2">
+   651→   651→                        <ChevronRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+   652→   652→                        Assurez-vous d'avoir une connexion internet stable
+   653→   653→                      </li>
+   654→   654→                      <li className="flex items-start gap-2">
+   655→   655→                        <ChevronRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+   656→   656→                        Activez les notifications pour ne rien manquer
+   657→   657→                      </li>
+   658→   658→                      <li className="flex items-start gap-2">
+   659→   659→                        <ChevronRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+   660→   660→                        Participez au chat pour interagir avec la communauté
+   661→   661→                      </li>
+   662→   662→                      <li className="flex items-start gap-2">
+   663→   663→                        <ChevronRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+   664→   664→                        Les replays sont disponibles après le direct
+   665→   665→                      </li>
+   666→   666→                    </ul>
+   667→   667→                  </CardContent>
+   668→   668→                </Card>
+   669→   669→              </motion.div>
+   670→   670→            </div>
+   671→   671→          </div>
+   672→   672→        </div>
+   673→   673→      </section>
+   674→   674→    </PublicLayout>
+   675→   675→  );
+   676→   676→}
+   677→   677→

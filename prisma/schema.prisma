@@ -1,0 +1,1038 @@
+// ChurchConnect - Comprehensive Church Management Platform
+// Prisma Schema (SQLite compatible, PostgreSQL-ready)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  SUPER_ADMIN
+  PASTOR
+  ADMIN
+  TREASURER
+  DEPARTMENT_HEAD
+  MODERATOR
+  MEMBER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum ServiceType {
+  SUNDAY_SERVICE
+  WEEKDAY_PRAYER
+  BIBLE_STUDY
+  VIGIL
+  CONFERENCE
+  SEMINAR
+  RETREAT
+  OTHER
+}
+
+enum SermonType {
+  VIDEO
+  AUDIO
+  PDF
+  TEXT
+}
+
+enum PrayerCategory {
+  FAMILY
+  HEALTH
+  WORK
+  STUDIES
+  FINANCES
+  SPIRITUAL
+  OTHER
+}
+
+enum PrayerVisibility {
+  PRIVATE
+  PASTORAL
+  COMMUNITY
+}
+
+enum DonationCategoryType {
+  TITHE
+  OFFERING
+  DONATION
+  MISSION
+  CONSTRUCTION
+  PROJECT
+  OTHER
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ConversionStatus {
+  NEW_CONTACT
+  FIRST_VISIT
+  DECISION_MADE
+  DISCIPLESHIP
+  BAPTISM_READY
+  BAPTIZED
+  INTEGRATED
+  DORMANT
+}
+
+enum BaptismStatus {
+  REQUESTED
+  APPROVED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum MarriageStatus {
+  REQUESTED
+  UNDER_REVIEW
+  COUNSELING
+  APPROVED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum StreamPlatform {
+  YOUTUBE
+  FACEBOOK
+  RTMP
+  OTHER
+}
+
+enum StreamStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+enum PostType {
+  TESTIMONY
+  PRAYER_REQUEST
+  GENERAL
+  ANNOUNCEMENT
+}
+
+enum PostVisibility {
+  PUBLIC
+  MEMBERS
+  DEPARTMENT
+  PRIVATE
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+  USER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum NotificationType {
+  NEW_SERVICE
+  NEW_EVENT
+  NEW_SERMON
+  LIVE_STARTED
+  REMINDER
+  PRAYER_UPDATE
+  ANNOUNCEMENT
+  VERSE_OF_DAY
+}
+
+enum DepartmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum GroupStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum GroupMemberRole {
+  LEADER
+  MEMBER
+}
+
+enum MemberProfileStatus {
+  ACTIVE
+  INACTIVE
+  TRANSFERRED
+  WITHDRAWN
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  SEPARATED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Testament {
+  OLD
+  NEW
+}
+
+enum ServiceStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+// ==================== USER & AUTHENTICATION ====================
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  name          String?
+  password      String
+  avatar        String?
+  emailVerified Boolean    @default(false)
+  role          Role       @default(MEMBER)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  sessions           Session[]
+  memberProfiles     MemberProfile[]
+  prayerRequests     PrayerRequest[]
+  prayerInteractions PrayerInteraction[]
+  donations          Donation[]
+  posts              Post[]
+  comments           Comment[]
+  likes              Like[]
+  reports            Report[]        @relation("ReportAuthor")
+  reportedAs         Report[]        @relation("ReportTarget")
+  enrollments        Enrollment[]
+  notifications      Notification[]
+  groupMemberships   GroupMember[]
+  groupsLed          Group[]         @relation("GroupLeader")
+  conversions        Conversion[]     @relation("ConversionAssignee")
+  pastoralFollowUps  PastoralFollowUp[]
+  baptisms           Baptism[]       @relation("BaptismCandidate")
+  baptismsOfficiated Baptism[]       @relation("BaptismOfficiant")
+  marriagesAsSpouse1 Marriage[]      @relation("MarriageSpouse1")
+  marriagesAsSpouse2 Marriage[]      @relation("MarriageSpouse2")
+  marriagesOfficiated Marriage[]     @relation("MarriageOfficiant")
+  sermonsPreached    Sermon[]
+  servicesPreached   Service[]       @relation("ServicePreacher")
+  eventsOrganized    Event[]
+  eventRegistrations EventRegistration[] @relation("EventRegistrant")
+  coursesInstructed  Course[]        @relation("CourseInstructor")
+  departmentsHeaded  Department[]     @relation("DepartmentHead")
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+// ==================== CHURCH STRUCTURE ====================
+
+model Church {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  address     String?
+  phone       String?
+  email       String?
+  logo        String?
+  website     String?
+  foundedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  departments       Department[]
+  groups            Group[]
+  memberProfiles    MemberProfile[]
+  services          Service[]
+  events            Event[]
+  sermons           Sermon[]
+  sermonSeries      SermonSeries[]
+  sermonCategories  SermonCategory[]
+  prayerRequests    PrayerRequest[]
+  donationCategories DonationCategory[]
+  donations         Donation[]
+  conversions       Conversion[]
+  baptisms          Baptism[]
+  marriages         Marriage[]
+  liveStreams       LiveStream[]
+  posts             Post[]
+  courses           Course[]
+  notifications     Notification[]
+
+  @@map("churches")
+}
+
+model Department {
+  id          String           @id @default(cuid())
+  churchId    String
+  name        String
+  description String?
+  color       String?
+  headId      String?
+  status      DepartmentStatus @default(ACTIVE)
+  order       Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  church Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  head   User?  @relation("DepartmentHead", fields: [headId], references: [id])
+  members MemberProfile[]
+
+  @@index([churchId])
+  @@index([headId])
+  @@map("departments")
+}
+
+model Group {
+  id          String       @id @default(cuid())
+  churchId    String
+  name        String
+  description String?
+  leaderId    String?
+  meetingDay  String?      // e.g., "Monday", "Tuesday"
+  meetingTime String?      // e.g., "18:00"
+  location    String?
+  maxSize     Int?
+  status      GroupStatus  @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  church  Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  leader  User?           @relation("GroupLeader", fields: [leaderId], references: [id])
+  members GroupMember[]
+  groupMemberProfiles MemberProfile[] @relation("GroupMembers")
+
+  @@index([churchId])
+  @@index([leaderId])
+  @@map("groups")
+}
+
+model GroupMember {
+  id       String         @id @default(cuid())
+  groupId  String
+  userId   String
+  role     GroupMemberRole @default(MEMBER)
+  joinedAt DateTime       @default(now())
+
+  // Relations
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@map("group_members")
+}
+
+// ==================== MEMBERS & PROFILES ====================
+
+model MemberProfile {
+  id             String             @id @default(cuid())
+  userId         String             @unique
+  churchId       String
+  firstName      String
+  lastName       String
+  phone          String?
+  birthDate      DateTime?
+  gender         Gender?
+  address        String?
+  city           String?
+  membershipDate DateTime?
+  baptismDate    DateTime?
+  maritalStatus  MaritalStatus?
+  departmentId   String?
+  groupId        String?
+  bio            String?
+  notes          String?            // Pastoral notes - protected
+  status         MemberProfileStatus @default(ACTIVE)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  church     Church      @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id])
+  group      Group?      @relation("GroupMembers", fields: [groupId], references: [id])
+
+  @@index([userId])
+  @@index([churchId])
+  @@index([departmentId])
+  @@index([groupId])
+  @@map("member_profiles")
+}
+
+// ==================== SERVICES & EVENTS ====================
+
+model Service {
+  id          String      @id @default(cuid())
+  churchId    String
+  title       String
+  description String?
+  type        ServiceType
+  date        DateTime
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  preacherId  String?
+  image       String?
+  status      ServiceStatus @default(SCHEDULED)
+  liveUrl     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  church  Church  @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  preacher User?   @relation("ServicePreacher", fields: [preacherId], references: [id])
+
+  @@index([churchId])
+  @@index([date])
+  @@index([type])
+  @@index([preacherId])
+  @@map("services")
+}
+
+model Event {
+  id                  String      @id @default(cuid())
+  churchId            String
+  title               String
+  description         String?
+  image               String?
+  date                DateTime
+  startTime           DateTime
+  endTime             DateTime
+  location            String?
+  organizerId         String?
+  maxParticipants     Int?
+  status              EventStatus  @default(DRAFT)
+  registrationDeadline DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  // Relations
+  church    Church                @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  organizer User?                 @relation(fields: [organizerId], references: [id])
+  registrations EventRegistration[]
+
+  @@index([churchId])
+  @@index([date])
+  @@index([organizerId])
+  @@map("events")
+}
+
+model EventRegistration {
+  id          String    @id @default(cuid())
+  eventId     String
+  userId      String
+  registeredAt DateTime @default(now())
+  attended    Boolean   @default(false)
+  qrCode      String?   @unique
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation("EventRegistrant", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("event_registrations")
+}
+
+// ==================== CONTENT - SERMONS & MEDIA ====================
+
+model Sermon {
+  id              String      @id @default(cuid())
+  churchId        String
+  title           String
+  description     String?
+  preacherId      String
+  date            DateTime
+  categoryId      String?
+  seriesId        String?
+  verse           String?
+  thumbnail       String?
+  videoUrl        String?
+  audioUrl        String?
+  documentUrl     String?
+  duration        Int?        // in minutes
+  type            SermonType  @default(TEXT)
+  downloadsAllowed Boolean    @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  church    Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  preacher  User            @relation(fields: [preacherId], references: [id])
+  category  SermonCategory? @relation(fields: [categoryId], references: [id])
+  series    SermonSeries?   @relation(fields: [seriesId], references: [id])
+
+  @@index([churchId])
+  @@index([preacherId])
+  @@index([date])
+  @@index([categoryId])
+  @@index([seriesId])
+  @@map("sermons")
+}
+
+model SermonSeries {
+  id          String    @id @default(cuid())
+  churchId    String
+  title       String
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  church  Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  sermons  Sermon[]
+
+  @@index([churchId])
+  @@map("sermon_series")
+}
+
+model SermonCategory {
+  id          String   @id @default(cuid())
+  churchId    String
+  name        String
+  description String?
+  icon        String?
+  order       Int      @default(0)
+
+  // Relations
+  church  Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  sermons  Sermon[]
+
+  @@index([churchId])
+  @@map("sermon_categories")
+}
+
+// ==================== BIBLE ====================
+
+model BibleBook {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  testament     Testament
+  order         Int
+  abbreviation  String
+  chaptersCount Int
+
+  // Relations
+  verses BibleVerse[]
+
+  @@index([testament])
+  @@index([order])
+  @@map("bible_books")
+}
+
+model BibleVerse {
+  id       String    @id @default(cuid())
+  bookId   String
+  chapter  Int
+  verse    Int
+  text     String
+
+  // Relations
+  book         BibleBook    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  dailyVerses  DailyVerse[]
+
+  @@unique([bookId, chapter, verse])
+  @@index([bookId])
+  @@map("bible_verses")
+}
+
+model DailyVerse {
+  id          String    @id @default(cuid())
+  verseId     String
+  date        String    @unique // Format: YYYY-MM-DD
+  title       String?
+  reflection String?
+
+  // Relations
+  verse BibleVerse @relation(fields: [verseId], references: [id])
+
+  @@index([date])
+  @@index([verseId])
+  @@map("daily_verses")
+}
+
+// ==================== PRAYER SYSTEM ====================
+
+model PrayerRequest {
+  id          String          @id @default(cuid())
+  userId      String
+  churchId    String
+  title       String
+  description String?
+  category    PrayerCategory  @default(OTHER)
+  visibility  PrayerVisibility @default(COMMUNITY)
+  isAnswered  Boolean         @default(false)
+  answeredAt  DateTime?
+  prayerCount Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  church       Church              @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  interactions PrayerInteraction[]
+
+  @@index([userId])
+  @@index([churchId])
+  @@index([visibility])
+  @@index([isAnswered])
+  @@map("prayer_requests")
+}
+
+model PrayerInteraction {
+  id              String   @id @default(cuid())
+  prayerRequestId String
+  userId          String
+  type            String   // "PRAYED" or "COMMENT" - using string for SQLite enum compatibility
+  comment         String?
+  createdAt       DateTime @default(now())
+
+  // Relations
+  prayerRequest PrayerRequest @relation(fields: [prayerRequestId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([prayerRequestId])
+  @@index([userId])
+  @@map("prayer_interactions")
+}
+
+// ==================== DONATIONS & FINANCE ====================
+
+model DonationCategory {
+  id          String              @id @default(cuid())
+  churchId    String
+  name        String
+  description String?
+  type        DonationCategoryType @default(OTHER)
+
+  // Relations
+  church    Church     @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  donations Donation[]
+
+  @@index([churchId])
+  @@map("donation_categories")
+}
+
+model Donation {
+  id          String          @id @default(cuid())
+  userId      String
+  churchId    String
+  categoryId  String
+  amount      Float
+  currency    String          @default("XAF") // Default to Central African CFA
+  method      String?         // e.g., "mobile_money", "cash", "bank_transfer"
+  reference   String?         @unique
+  status      DonationStatus  @default(PENDING)
+  receiptUrl  String?
+  notes       String?
+  paymentDate DateTime
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  church   Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  category DonationCategory @relation(fields: [categoryId], references: [id])
+
+  @@index([userId])
+  @@index([churchId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([paymentDate])
+  @@map("donations")
+}
+
+// ==================== PASTORAL CARE ====================
+
+model Conversion {
+  id            String           @id @default(cuid())
+  churchId      String
+  firstName     String
+  lastName      String
+  phone         String?
+  conversionDate DateTime?
+  location      String?
+  assignedToId  String?
+  status        ConversionStatus @default(NEW_CONTACT)
+  notes         String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  church        Church            @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  assignedTo    User?             @relation("ConversionAssignee", fields: [assignedToId], references: [id])
+  followUps     PastoralFollowUp[]
+
+  @@index([churchId])
+  @@index([assignedToId])
+  @@index([status])
+  @@map("conversions")
+}
+
+model PastoralFollowUp {
+  id          String    @id @default(cuid())
+  conversionId String
+  userId      String
+  type        String?   // e.g., "PHONE_CALL", "VISIT", "MESSAGE", "MEETING"
+  notes       String?
+  nextAction  String?
+  followUpDate DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  conversion Conversion @relation(fields: [conversionId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([conversionId])
+  @@index([userId])
+  @@map("pastoral_follow_ups")
+}
+
+model Baptism {
+  id            String         @id @default(cuid())
+  churchId      String
+  candidateId   String
+  requestDate   DateTime
+  scheduledDate DateTime?
+  officiantId   String?
+  status        BaptismStatus  @default(REQUESTED)
+  certificateUrl String?
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  church    Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  candidate User   @relation("BaptismCandidate", fields: [candidateId], references: [id])
+  officiant User?  @relation("BaptismOfficiant", fields: [officiantId], references: [id])
+
+  @@index([churchId])
+  @@index([candidateId])
+  @@index([status])
+  @@map("baptisms")
+}
+
+model Marriage {
+  id                 String         @id @default(cuid())
+  churchId           String
+  spouse1Id          String
+  spouse2Id          String
+  requestDate        DateTime
+  scheduledDate      DateTime?
+  officiantId        String?
+  status             MarriageStatus  @default(REQUESTED)
+  documents          String?         // JSON array of document URLs
+  counselingSessions Int             @default(0)
+  notes              String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  // Relations
+  church    Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  spouse1   User   @relation("MarriageSpouse1", fields: [spouse1Id], references: [id])
+  spouse2   User   @relation("MarriageSpouse2", fields: [spouse2Id], references: [id])
+  officiant User?  @relation("MarriageOfficiant", fields: [officiantId], references: [id])
+
+  @@index([churchId])
+  @@index([spouse1Id])
+  @@index([spouse2Id])
+  @@index([status])
+  @@map("marriages")
+}
+
+// ==================== LIVE STREAMING ====================
+
+model LiveStream {
+  id            String        @id @default(cuid())
+  churchId      String
+  title         String
+  description   String?
+  thumbnail     String?
+  platform      StreamPlatform @default(YOUTUBE)
+  streamKey     String?
+  streamUrl     String?
+  status        StreamStatus   @default(SCHEDULED)
+  scheduledStart DateTime?
+  scheduledEnd  DateTime?
+  actualStart   DateTime?
+  actualEnd     DateTime?
+  viewerCount   Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  church Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+
+  @@index([churchId])
+  @@index([status])
+  @@index([scheduledStart])
+  @@map("live_streams")
+}
+
+// ==================== COMMUNITY/SOCIAL ====================
+
+model Post {
+  id           String         @id @default(cuid())
+  userId       String
+  churchId     String
+  content      String
+  type         PostType       @default(GENERAL)
+  imageUrl     String?
+  visibility   PostVisibility @default(PUBLIC)
+  likesCount   Int            @default(0)
+  commentsCount Int           @default(0)
+  isPinned     Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // Relations
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  church   Church         @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+  reports  Report[]       @relation("PostReports")
+
+  @@index([userId])
+  @@index([churchId])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  postId    String
+  userId    String
+  content   String
+  parentId  String?
+  likesCount Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  post     Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentReplies")
+  likes    Like[]
+  reports  Report[]  @relation("CommentReports")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("comments")
+}
+
+model Like {
+  id        String    @id @default(cuid())
+  userId    String
+  postId   String?
+  commentId String?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([postId])
+  @@index([commentId])
+  @@map("likes")
+}
+
+model Report {
+  id          String          @id @default(cuid())
+  reporterId  String
+  targetType  ReportTargetType
+  targetId    String
+  reason      String
+  status      ReportStatus    @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  reporter User      @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: Cascade)
+  target   User      @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  post     Post?     @relation("PostReports", fields: [targetId], references: [id], onDelete: Cascade)
+  comment  Comment?  @relation("CommentReports", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([targetType])
+  @@index([targetId])
+  @@index([status])
+  @@map("reports")
+}
+
+// ==================== EDUCATION/COURSES ====================
+
+model Course {
+  id           String       @id @default(cuid())
+  churchId     String
+  title        String
+  description  String?
+  image        String?
+  instructorId String?
+  status       CourseStatus  @default(DRAFT)
+  maxStudents  Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  church      Church         @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  instructor  User?          @relation("CourseInstructor", fields: [instructorId], references: [id])
+  modules     CourseModule[]
+  enrollments Enrollment[]
+
+  @@index([churchId])
+  @@index([instructorId])
+  @@index([status])
+  @@map("courses")
+}
+
+model CourseModule {
+  id          String   @id @default(cuid())
+  courseId    String
+  title       String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([courseId])
+  @@map("course_modules")
+}
+
+model Lesson {
+  id          String    @id @default(cuid())
+  moduleId    String
+  title       String
+  content     String?
+  videoUrl    String?
+  documentUrl String?
+  duration    Int?      // in minutes
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  module CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId])
+  @@map("lessons")
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  courseId    String
+  userId      String
+  progress    Float     @default(0) // 0-100 percentage
+  completedAt DateTime?
+  enrolledAt  DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+  @@index([courseId])
+  @@index([userId])
+  @@map("enrollments")
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  churchId  String?
+  type      NotificationType
+  title     String
+  message   String
+  data      String?          // JSON string for additional data
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  actionUrl String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Relations
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  church Church? @relation(fields: [churchId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([churchId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}

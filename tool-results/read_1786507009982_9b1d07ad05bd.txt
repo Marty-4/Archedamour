@@ -1,0 +1,1039 @@
+     1→// ChurchConnect - Comprehensive Church Management Platform
+     2→// Prisma Schema (SQLite compatible, PostgreSQL-ready)
+     3→
+     4→generator client {
+     5→  provider = "prisma-client-js"
+     6→}
+     7→
+     8→datasource db {
+     9→  provider = "sqlite"
+    10→  url      = env("DATABASE_URL")
+    11→}
+    12→
+    13→// ==================== ENUMS ====================
+    14→
+    15→enum Role {
+    16→  SUPER_ADMIN
+    17→  PASTOR
+    18→  ADMIN
+    19→  TREASURER
+    20→  DEPARTMENT_HEAD
+    21→  MODERATOR
+    22→  MEMBER
+    23→}
+    24→
+    25→enum UserStatus {
+    26→  ACTIVE
+    27→  INACTIVE
+    28→  SUSPENDED
+    29→  PENDING
+    30→}
+    31→
+    32→enum ServiceType {
+    33→  SUNDAY_SERVICE
+    34→  WEEKDAY_PRAYER
+    35→  BIBLE_STUDY
+    36→  VIGIL
+    37→  CONFERENCE
+    38→  SEMINAR
+    39→  RETREAT
+    40→  OTHER
+    41→}
+    42→
+    43→enum SermonType {
+    44→  VIDEO
+    45→  AUDIO
+    46→  PDF
+    47→  TEXT
+    48→}
+    49→
+    50→enum PrayerCategory {
+    51→  FAMILY
+    52→  HEALTH
+    53→  WORK
+    54→  STUDIES
+    55→  FINANCES
+    56→  SPIRITUAL
+    57→  OTHER
+    58→}
+    59→
+    60→enum PrayerVisibility {
+    61→  PRIVATE
+    62→  PASTORAL
+    63→  COMMUNITY
+    64→}
+    65→
+    66→enum DonationCategoryType {
+    67→  TITHE
+    68→  OFFERING
+    69→  DONATION
+    70→  MISSION
+    71→  CONSTRUCTION
+    72→  PROJECT
+    73→  OTHER
+    74→}
+    75→
+    76→enum DonationStatus {
+    77→  PENDING
+    78→  COMPLETED
+    79→  FAILED
+    80→  CANCELLED
+    81→}
+    82→
+    83→enum ConversionStatus {
+    84→  NEW_CONTACT
+    85→  FIRST_VISIT
+    86→  DECISION_MADE
+    87→  DISCIPLESHIP
+    88→  BAPTISM_READY
+    89→  BAPTIZED
+    90→  INTEGRATED
+    91→  DORMANT
+    92→}
+    93→
+    94→enum BaptismStatus {
+    95→  REQUESTED
+    96→  APPROVED
+    97→  SCHEDULED
+    98→  COMPLETED
+    99→  CANCELLED
+   100→}
+   101→
+   102→enum MarriageStatus {
+   103→  REQUESTED
+   104→  UNDER_REVIEW
+   105→  COUNSELING
+   106→  APPROVED
+   107→  SCHEDULED
+   108→  COMPLETED
+   109→  CANCELLED
+   110→}
+   111→
+   112→enum StreamPlatform {
+   113→  YOUTUBE
+   114→  FACEBOOK
+   115→  RTMP
+   116→  OTHER
+   117→}
+   118→
+   119→enum StreamStatus {
+   120→  SCHEDULED
+   121→  LIVE
+   122→  ENDED
+   123→  CANCELLED
+   124→}
+   125→
+   126→enum PostType {
+   127→  TESTIMONY
+   128→  PRAYER_REQUEST
+   129→  GENERAL
+   130→  ANNOUNCEMENT
+   131→}
+   132→
+   133→enum PostVisibility {
+   134→  PUBLIC
+   135→  MEMBERS
+   136→  DEPARTMENT
+   137→  PRIVATE
+   138→}
+   139→
+   140→enum ReportTargetType {
+   141→  POST
+   142→  COMMENT
+   143→  USER
+   144→}
+   145→
+   146→enum ReportStatus {
+   147→  PENDING
+   148→  REVIEWED
+   149→  RESOLVED
+   150→  DISMISSED
+   151→}
+   152→
+   153→enum CourseStatus {
+   154→  DRAFT
+   155→  PUBLISHED
+   156→  ARCHIVED
+   157→}
+   158→
+   159→enum NotificationType {
+   160→  NEW_SERVICE
+   161→  NEW_EVENT
+   162→  NEW_SERMON
+   163→  LIVE_STARTED
+   164→  REMINDER
+   165→  PRAYER_UPDATE
+   166→  ANNOUNCEMENT
+   167→  VERSE_OF_DAY
+   168→}
+   169→
+   170→enum DepartmentStatus {
+   171→  ACTIVE
+   172→  INACTIVE
+   173→}
+   174→
+   175→enum GroupStatus {
+   176→  ACTIVE
+   177→  INACTIVE
+   178→  ARCHIVED
+   179→}
+   180→
+   181→enum GroupMemberRole {
+   182→  LEADER
+   183→  MEMBER
+   184→}
+   185→
+   186→enum MemberProfileStatus {
+   187→  ACTIVE
+   188→  INACTIVE
+   189→  TRANSFERRED
+   190→  WITHDRAWN
+   191→}
+   192→
+   193→enum MaritalStatus {
+   194→  SINGLE
+   195→  MARRIED
+   196→  DIVORCED
+   197→  WIDOWED
+   198→  SEPARATED
+   199→}
+   200→
+   201→enum Gender {
+   202→  MALE
+   203→  FEMALE
+   204→  OTHER
+   205→}
+   206→
+   207→enum Testament {
+   208→  OLD
+   209→  NEW
+   210→}
+   211→
+   212→enum ServiceStatus {
+   213→  SCHEDULED
+   214→  ONGOING
+   215→  COMPLETED
+   216→  CANCELLED
+   217→}
+   218→
+   219→enum EventStatus {
+   220→  DRAFT
+   221→  PUBLISHED
+   222→  CANCELLED
+   223→  COMPLETED
+   224→}
+   225→
+   226→// ==================== USER & AUTHENTICATION ====================
+   227→
+   228→model User {
+   229→  id            String     @id @default(cuid())
+   230→  email         String     @unique
+   231→  name          String?
+   232→  password      String
+   233→  avatar        String?
+   234→  emailVerified Boolean    @default(false)
+   235→  role          Role       @default(MEMBER)
+   236→  status        UserStatus @default(ACTIVE)
+   237→  createdAt     DateTime   @default(now())
+   238→  updatedAt     DateTime   @updatedAt
+   239→
+   240→  // Relations
+   241→  sessions           Session[]
+   242→  memberProfiles     MemberProfile[]
+   243→  prayerRequests     PrayerRequest[]
+   244→  prayerInteractions PrayerInteraction[]
+   245→  donations          Donation[]
+   246→  posts              Post[]
+   247→  comments           Comment[]
+   248→  likes              Like[]
+   249→  reports            Report[]        @relation("ReportAuthor")
+   250→  reportedAs         Report[]        @relation("ReportTarget")
+   251→  enrollments        Enrollment[]
+   252→  notifications      Notification[]
+   253→  groupMemberships   GroupMember[]
+   254→  groupsLed          Group[]         @relation("GroupLeader")
+   255→  conversions        Conversion[]     @relation("ConversionAssignee")
+   256→  pastoralFollowUps  PastoralFollowUp[]
+   257→  baptisms           Baptism[]       @relation("BaptismCandidate")
+   258→  baptismsOfficiated Baptism[]       @relation("BaptismOfficiant")
+   259→  marriagesAsSpouse1 Marriage[]      @relation("MarriageSpouse1")
+   260→  marriagesAsSpouse2 Marriage[]      @relation("MarriageSpouse2")
+   261→  marriagesOfficiated Marriage[]     @relation("MarriageOfficiant")
+   262→  sermonsPreached    Sermon[]
+   263→  servicesPreached   Service[]       @relation("ServicePreacher")
+   264→  eventsOrganized    Event[]
+   265→  eventRegistrations EventRegistration[] @relation("EventRegistrant")
+   266→  coursesInstructed  Course[]        @relation("CourseInstructor")
+   267→  departmentsHeaded  Department[]     @relation("DepartmentHead")
+   268→
+   269→  @@map("users")
+   270→}
+   271→
+   272→model Session {
+   273→  id        String   @id @default(cuid())
+   274→  userId    String
+   275→  token     String   @unique
+   276→  expiresAt DateTime
+   277→  createdAt DateTime @default(now())
+   278→
+   279→  // Relations
+   280→  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+   281→
+   282→  @@index([userId])
+   283→  @@index([token])
+   284→  @@map("sessions")
+   285→}
+   286→
+   287→// ==================== CHURCH STRUCTURE ====================
+   288→
+   289→model Church {
+   290→  id          String    @id @default(cuid())
+   291→  name        String
+   292→  description String?
+   293→  address     String?
+   294→  phone       String?
+   295→  email       String?
+   296→  logo        String?
+   297→  website     String?
+   298→  foundedAt   DateTime?
+   299→  createdAt   DateTime  @default(now())
+   300→  updatedAt   DateTime  @updatedAt
+   301→
+   302→  // Relations
+   303→  departments       Department[]
+   304→  groups            Group[]
+   305→  memberProfiles    MemberProfile[]
+   306→  services          Service[]
+   307→  events            Event[]
+   308→  sermons           Sermon[]
+   309→  sermonSeries      SermonSeries[]
+   310→  sermonCategories  SermonCategory[]
+   311→  prayerRequests    PrayerRequest[]
+   312→  donationCategories DonationCategory[]
+   313→  donations         Donation[]
+   314→  conversions       Conversion[]
+   315→  baptisms          Baptism[]
+   316→  marriages         Marriage[]
+   317→  liveStreams       LiveStream[]
+   318→  posts             Post[]
+   319→  courses           Course[]
+   320→  notifications     Notification[]
+   321→
+   322→  @@map("churches")
+   323→}
+   324→
+   325→model Department {
+   326→  id          String           @id @default(cuid())
+   327→  churchId    String
+   328→  name        String
+   329→  description String?
+   330→  color       String?
+   331→  headId      String?
+   332→  status      DepartmentStatus @default(ACTIVE)
+   333→  order       Int              @default(0)
+   334→  createdAt   DateTime         @default(now())
+   335→  updatedAt   DateTime         @updatedAt
+   336→
+   337→  // Relations
+   338→  church Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   339→  head   User?  @relation("DepartmentHead", fields: [headId], references: [id])
+   340→  members MemberProfile[]
+   341→
+   342→  @@index([churchId])
+   343→  @@index([headId])
+   344→  @@map("departments")
+   345→}
+   346→
+   347→model Group {
+   348→  id          String       @id @default(cuid())
+   349→  churchId    String
+   350→  name        String
+   351→  description String?
+   352→  leaderId    String?
+   353→  meetingDay  String?      // e.g., "Monday", "Tuesday"
+   354→  meetingTime String?      // e.g., "18:00"
+   355→  location    String?
+   356→  maxSize     Int?
+   357→  status      GroupStatus  @default(ACTIVE)
+   358→  createdAt   DateTime     @default(now())
+   359→  updatedAt   DateTime     @updatedAt
+   360→
+   361→  // Relations
+   362→  church  Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   363→  leader  User?           @relation("GroupLeader", fields: [leaderId], references: [id])
+   364→  members GroupMember[]
+   365→  groupMemberProfiles MemberProfile[] @relation("GroupMembers")
+   366→
+   367→  @@index([churchId])
+   368→  @@index([leaderId])
+   369→  @@map("groups")
+   370→}
+   371→
+   372→model GroupMember {
+   373→  id       String         @id @default(cuid())
+   374→  groupId  String
+   375→  userId   String
+   376→  role     GroupMemberRole @default(MEMBER)
+   377→  joinedAt DateTime       @default(now())
+   378→
+   379→  // Relations
+   380→  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+   381→  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+   382→
+   383→  @@unique([groupId, userId])
+   384→  @@index([groupId])
+   385→  @@index([userId])
+   386→  @@map("group_members")
+   387→}
+   388→
+   389→// ==================== MEMBERS & PROFILES ====================
+   390→
+   391→model MemberProfile {
+   392→  id             String             @id @default(cuid())
+   393→  userId         String             @unique
+   394→  churchId       String
+   395→  firstName      String
+   396→  lastName       String
+   397→  phone          String?
+   398→  birthDate      DateTime?
+   399→  gender         Gender?
+   400→  address        String?
+   401→  city           String?
+   402→  membershipDate DateTime?
+   403→  baptismDate    DateTime?
+   404→  maritalStatus  MaritalStatus?
+   405→  departmentId   String?
+   406→  groupId        String?
+   407→  bio            String?
+   408→  notes          String?            // Pastoral notes - protected
+   409→  status         MemberProfileStatus @default(ACTIVE)
+   410→  createdAt      DateTime           @default(now())
+   411→  updatedAt      DateTime           @updatedAt
+   412→
+   413→  // Relations
+   414→  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+   415→  church     Church      @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   416→  department Department? @relation(fields: [departmentId], references: [id])
+   417→  group      Group?      @relation("GroupMembers", fields: [groupId], references: [id])
+   418→
+   419→  @@index([userId])
+   420→  @@index([churchId])
+   421→  @@index([departmentId])
+   422→  @@index([groupId])
+   423→  @@map("member_profiles")
+   424→}
+   425→
+   426→// ==================== SERVICES & EVENTS ====================
+   427→
+   428→model Service {
+   429→  id          String      @id @default(cuid())
+   430→  churchId    String
+   431→  title       String
+   432→  description String?
+   433→  type        ServiceType
+   434→  date        DateTime
+   435→  startTime   DateTime
+   436→  endTime     DateTime
+   437→  location    String?
+   438→  preacherId  String?
+   439→  image       String?
+   440→  status      ServiceStatus @default(SCHEDULED)
+   441→  liveUrl     String?
+   442→  createdAt   DateTime    @default(now())
+   443→  updatedAt   DateTime    @updatedAt
+   444→
+   445→  // Relations
+   446→  church  Church  @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   447→  preacher User?   @relation("ServicePreacher", fields: [preacherId], references: [id])
+   448→
+   449→  @@index([churchId])
+   450→  @@index([date])
+   451→  @@index([type])
+   452→  @@index([preacherId])
+   453→  @@map("services")
+   454→}
+   455→
+   456→model Event {
+   457→  id                  String      @id @default(cuid())
+   458→  churchId            String
+   459→  title               String
+   460→  description         String?
+   461→  image               String?
+   462→  date                DateTime
+   463→  startTime           DateTime
+   464→  endTime             DateTime
+   465→  location            String?
+   466→  organizerId         String?
+   467→  maxParticipants     Int?
+   468→  status              EventStatus  @default(DRAFT)
+   469→  registrationDeadline DateTime?
+   470→  createdAt           DateTime    @default(now())
+   471→  updatedAt           DateTime    @updatedAt
+   472→
+   473→  // Relations
+   474→  church    Church                @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   475→  organizer User?                 @relation(fields: [organizerId], references: [id])
+   476→  registrations EventRegistration[]
+   477→
+   478→  @@index([churchId])
+   479→  @@index([date])
+   480→  @@index([organizerId])
+   481→  @@map("events")
+   482→}
+   483→
+   484→model EventRegistration {
+   485→  id          String    @id @default(cuid())
+   486→  eventId     String
+   487→  userId      String
+   488→  registeredAt DateTime @default(now())
+   489→  attended    Boolean   @default(false)
+   490→  qrCode      String?   @unique
+   491→
+   492→  // Relations
+   493→  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+   494→  user  User  @relation("EventRegistrant", fields: [userId], references: [id], onDelete: Cascade)
+   495→
+   496→  @@unique([eventId, userId])
+   497→  @@index([eventId])
+   498→  @@index([userId])
+   499→  @@map("event_registrations")
+   500→}
+   501→
+   502→// ==================== CONTENT - SERMONS & MEDIA ====================
+   503→
+   504→model Sermon {
+   505→  id              String      @id @default(cuid())
+   506→  churchId        String
+   507→  title           String
+   508→  description     String?
+   509→  preacherId      String
+   510→  date            DateTime
+   511→  categoryId      String?
+   512→  seriesId        String?
+   513→  verse           String?
+   514→  thumbnail       String?
+   515→  videoUrl        String?
+   516→  audioUrl        String?
+   517→  documentUrl     String?
+   518→  duration        Int?        // in minutes
+   519→  type            SermonType  @default(TEXT)
+   520→  downloadsAllowed Boolean    @default(true)
+   521→  createdAt       DateTime    @default(now())
+   522→  updatedAt       DateTime    @updatedAt
+   523→
+   524→  // Relations
+   525→  church    Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   526→  preacher  User            @relation(fields: [preacherId], references: [id])
+   527→  category  SermonCategory? @relation(fields: [categoryId], references: [id])
+   528→  series    SermonSeries?   @relation(fields: [seriesId], references: [id])
+   529→
+   530→  @@index([churchId])
+   531→  @@index([preacherId])
+   532→  @@index([date])
+   533→  @@index([categoryId])
+   534→  @@index([seriesId])
+   535→  @@map("sermons")
+   536→}
+   537→
+   538→model SermonSeries {
+   539→  id          String    @id @default(cuid())
+   540→  churchId    String
+   541→  title       String
+   542→  description String?
+   543→  image       String?
+   544→  createdAt   DateTime  @default(now())
+   545→  updatedAt   DateTime  @updatedAt
+   546→
+   547→  // Relations
+   548→  church  Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   549→  sermons  Sermon[]
+   550→
+   551→  @@index([churchId])
+   552→  @@map("sermon_series")
+   553→}
+   554→
+   555→model SermonCategory {
+   556→  id          String   @id @default(cuid())
+   557→  churchId    String
+   558→  name        String
+   559→  description String?
+   560→  icon        String?
+   561→  order       Int      @default(0)
+   562→
+   563→  // Relations
+   564→  church  Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   565→  sermons  Sermon[]
+   566→
+   567→  @@index([churchId])
+   568→  @@map("sermon_categories")
+   569→}
+   570→
+   571→// ==================== BIBLE ====================
+   572→
+   573→model BibleBook {
+   574→  id            String    @id @default(cuid())
+   575→  name          String    @unique
+   576→  testament     Testament
+   577→  order         Int
+   578→  abbreviation  String
+   579→  chaptersCount Int
+   580→
+   581→  // Relations
+   582→  verses BibleVerse[]
+   583→
+   584→  @@index([testament])
+   585→  @@index([order])
+   586→  @@map("bible_books")
+   587→}
+   588→
+   589→model BibleVerse {
+   590→  id       String    @id @default(cuid())
+   591→  bookId   String
+   592→  chapter  Int
+   593→  verse    Int
+   594→  text     String
+   595→
+   596→  // Relations
+   597→  book         BibleBook    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+   598→  dailyVerses  DailyVerse[]
+   599→
+   600→  @@unique([bookId, chapter, verse])
+   601→  @@index([bookId])
+   602→  @@map("bible_verses")
+   603→}
+   604→
+   605→model DailyVerse {
+   606→  id          String    @id @default(cuid())
+   607→  verseId     String
+   608→  date        String    @unique // Format: YYYY-MM-DD
+   609→  title       String?
+   610→  reflection String?
+   611→
+   612→  // Relations
+   613→  verse BibleVerse @relation(fields: [verseId], references: [id])
+   614→
+   615→  @@index([date])
+   616→  @@index([verseId])
+   617→  @@map("daily_verses")
+   618→}
+   619→
+   620→// ==================== PRAYER SYSTEM ====================
+   621→
+   622→model PrayerRequest {
+   623→  id          String          @id @default(cuid())
+   624→  userId      String
+   625→  churchId    String
+   626→  title       String
+   627→  description String?
+   628→  category    PrayerCategory  @default(OTHER)
+   629→  visibility  PrayerVisibility @default(COMMUNITY)
+   630→  isAnswered  Boolean         @default(false)
+   631→  answeredAt  DateTime?
+   632→  prayerCount Int             @default(0)
+   633→  createdAt   DateTime        @default(now())
+   634→  updatedAt   DateTime        @updatedAt
+   635→
+   636→  // Relations
+   637→  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+   638→  church       Church              @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   639→  interactions PrayerInteraction[]
+   640→
+   641→  @@index([userId])
+   642→  @@index([churchId])
+   643→  @@index([visibility])
+   644→  @@index([isAnswered])
+   645→  @@map("prayer_requests")
+   646→}
+   647→
+   648→model PrayerInteraction {
+   649→  id              String   @id @default(cuid())
+   650→  prayerRequestId String
+   651→  userId          String
+   652→  type            String   // "PRAYED" or "COMMENT" - using string for SQLite enum compatibility
+   653→  comment         String?
+   654→  createdAt       DateTime @default(now())
+   655→
+   656→  // Relations
+   657→  prayerRequest PrayerRequest @relation(fields: [prayerRequestId], references: [id], onDelete: Cascade)
+   658→  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+   659→
+   660→  @@index([prayerRequestId])
+   661→  @@index([userId])
+   662→  @@map("prayer_interactions")
+   663→}
+   664→
+   665→// ==================== DONATIONS & FINANCE ====================
+   666→
+   667→model DonationCategory {
+   668→  id          String              @id @default(cuid())
+   669→  churchId    String
+   670→  name        String
+   671→  description String?
+   672→  type        DonationCategoryType @default(OTHER)
+   673→
+   674→  // Relations
+   675→  church    Church     @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   676→  donations Donation[]
+   677→
+   678→  @@index([churchId])
+   679→  @@map("donation_categories")
+   680→}
+   681→
+   682→model Donation {
+   683→  id          String          @id @default(cuid())
+   684→  userId      String
+   685→  churchId    String
+   686→  categoryId  String
+   687→  amount      Float
+   688→  currency    String          @default("XAF") // Default to Central African CFA
+   689→  method      String?         // e.g., "mobile_money", "cash", "bank_transfer"
+   690→  reference   String?         @unique
+   691→  status      DonationStatus  @default(PENDING)
+   692→  receiptUrl  String?
+   693→  notes       String?
+   694→  paymentDate DateTime
+   695→  createdAt   DateTime        @default(now())
+   696→  updatedAt   DateTime        @updatedAt
+   697→
+   698→  // Relations
+   699→  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+   700→  church   Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   701→  category DonationCategory @relation(fields: [categoryId], references: [id])
+   702→
+   703→  @@index([userId])
+   704→  @@index([churchId])
+   705→  @@index([categoryId])
+   706→  @@index([status])
+   707→  @@index([paymentDate])
+   708→  @@map("donations")
+   709→}
+   710→
+   711→// ==================== PASTORAL CARE ====================
+   712→
+   713→model Conversion {
+   714→  id            String           @id @default(cuid())
+   715→  churchId      String
+   716→  firstName     String
+   717→  lastName      String
+   718→  phone         String?
+   719→  conversionDate DateTime?
+   720→  location      String?
+   721→  assignedToId  String?
+   722→  status        ConversionStatus @default(NEW_CONTACT)
+   723→  notes         String?
+   724→  createdAt     DateTime         @default(now())
+   725→  updatedAt     DateTime         @updatedAt
+   726→
+   727→  // Relations
+   728→  church        Church            @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   729→  assignedTo    User?             @relation("ConversionAssignee", fields: [assignedToId], references: [id])
+   730→  followUps     PastoralFollowUp[]
+   731→
+   732→  @@index([churchId])
+   733→  @@index([assignedToId])
+   734→  @@index([status])
+   735→  @@map("conversions")
+   736→}
+   737→
+   738→model PastoralFollowUp {
+   739→  id          String    @id @default(cuid())
+   740→  conversionId String
+   741→  userId      String
+   742→  type        String?   // e.g., "PHONE_CALL", "VISIT", "MESSAGE", "MEETING"
+   743→  notes       String?
+   744→  nextAction  String?
+   745→  followUpDate DateTime?
+   746→  createdAt   DateTime  @default(now())
+   747→
+   748→  // Relations
+   749→  conversion Conversion @relation(fields: [conversionId], references: [id], onDelete: Cascade)
+   750→  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+   751→
+   752→  @@index([conversionId])
+   753→  @@index([userId])
+   754→  @@map("pastoral_follow_ups")
+   755→}
+   756→
+   757→model Baptism {
+   758→  id            String         @id @default(cuid())
+   759→  churchId      String
+   760→  candidateId   String
+   761→  requestDate   DateTime
+   762→  scheduledDate DateTime?
+   763→  officiantId   String?
+   764→  status        BaptismStatus  @default(REQUESTED)
+   765→  certificateUrl String?
+   766→  notes         String?
+   767→  createdAt     DateTime       @default(now())
+   768→  updatedAt     DateTime       @updatedAt
+   769→
+   770→  // Relations
+   771→  church    Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   772→  candidate User   @relation("BaptismCandidate", fields: [candidateId], references: [id])
+   773→  officiant User?  @relation("BaptismOfficiant", fields: [officiantId], references: [id])
+   774→
+   775→  @@index([churchId])
+   776→  @@index([candidateId])
+   777→  @@index([status])
+   778→  @@map("baptisms")
+   779→}
+   780→
+   781→model Marriage {
+   782→  id                 String         @id @default(cuid())
+   783→  churchId           String
+   784→  spouse1Id          String
+   785→  spouse2Id          String
+   786→  requestDate        DateTime
+   787→  scheduledDate      DateTime?
+   788→  officiantId        String?
+   789→  status             MarriageStatus  @default(REQUESTED)
+   790→  documents          String?         // JSON array of document URLs
+   791→  counselingSessions Int             @default(0)
+   792→  notes              String?
+   793→  createdAt          DateTime        @default(now())
+   794→  updatedAt          DateTime        @updatedAt
+   795→
+   796→  // Relations
+   797→  church    Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   798→  spouse1   User   @relation("MarriageSpouse1", fields: [spouse1Id], references: [id])
+   799→  spouse2   User   @relation("MarriageSpouse2", fields: [spouse2Id], references: [id])
+   800→  officiant User?  @relation("MarriageOfficiant", fields: [officiantId], references: [id])
+   801→
+   802→  @@index([churchId])
+   803→  @@index([spouse1Id])
+   804→  @@index([spouse2Id])
+   805→  @@index([status])
+   806→  @@map("marriages")
+   807→}
+   808→
+   809→// ==================== LIVE STREAMING ====================
+   810→
+   811→model LiveStream {
+   812→  id            String        @id @default(cuid())
+   813→  churchId      String
+   814→  title         String
+   815→  description   String?
+   816→  thumbnail     String?
+   817→  platform      StreamPlatform @default(YOUTUBE)
+   818→  streamKey     String?
+   819→  streamUrl     String?
+   820→  status        StreamStatus   @default(SCHEDULED)
+   821→  scheduledStart DateTime?
+   822→  scheduledEnd  DateTime?
+   823→  actualStart   DateTime?
+   824→  actualEnd     DateTime?
+   825→  viewerCount   Int           @default(0)
+   826→  createdAt     DateTime      @default(now())
+   827→  updatedAt     DateTime      @updatedAt
+   828→
+   829→  // Relations
+   830→  church Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   831→
+   832→  @@index([churchId])
+   833→  @@index([status])
+   834→  @@index([scheduledStart])
+   835→  @@map("live_streams")
+   836→}
+   837→
+   838→// ==================== COMMUNITY/SOCIAL ====================
+   839→
+   840→model Post {
+   841→  id           String         @id @default(cuid())
+   842→  userId       String
+   843→  churchId     String
+   844→  content      String
+   845→  type         PostType       @default(GENERAL)
+   846→  imageUrl     String?
+   847→  visibility   PostVisibility @default(PUBLIC)
+   848→  likesCount   Int            @default(0)
+   849→  commentsCount Int           @default(0)
+   850→  isPinned     Boolean        @default(false)
+   851→  createdAt    DateTime       @default(now())
+   852→  updatedAt    DateTime       @updatedAt
+   853→
+   854→  // Relations
+   855→  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+   856→  church   Church         @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   857→  comments Comment[]
+   858→  likes    Like[]
+   859→  reports  Report[]       @relation("PostReports")
+   860→
+   861→  @@index([userId])
+   862→  @@index([churchId])
+   863→  @@index([createdAt])
+   864→  @@map("posts")
+   865→}
+   866→
+   867→model Comment {
+   868→  id         String   @id @default(cuid())
+   869→  postId    String
+   870→  userId    String
+   871→  content   String
+   872→  parentId  String?
+   873→  likesCount Int     @default(0)
+   874→  createdAt DateTime @default(now())
+   875→  updatedAt DateTime @updatedAt
+   876→
+   877→  // Relations
+   878→  post     Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+   879→  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+   880→  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+   881→  replies  Comment[] @relation("CommentReplies")
+   882→  likes    Like[]
+   883→  reports  Report[]  @relation("CommentReports")
+   884→
+   885→  @@index([postId])
+   886→  @@index([userId])
+   887→  @@index([parentId])
+   888→  @@map("comments")
+   889→}
+   890→
+   891→model Like {
+   892→  id        String    @id @default(cuid())
+   893→  userId    String
+   894→  postId   String?
+   895→  commentId String?
+   896→  createdAt DateTime  @default(now())
+   897→
+   898→  // Relations
+   899→  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+   900→  post    Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+   901→  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+   902→
+   903→  @@index([userId])
+   904→  @@index([postId])
+   905→  @@index([commentId])
+   906→  @@map("likes")
+   907→}
+   908→
+   909→model Report {
+   910→  id          String          @id @default(cuid())
+   911→  reporterId  String
+   912→  targetType  ReportTargetType
+   913→  targetId    String
+   914→  reason      String
+   915→  status      ReportStatus    @default(PENDING)
+   916→  createdAt   DateTime        @default(now())
+   917→  updatedAt   DateTime        @updatedAt
+   918→
+   919→  // Relations
+   920→  reporter User      @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: Cascade)
+   921→  target   User      @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Cascade)
+   922→  post     Post?     @relation("PostReports", fields: [targetId], references: [id], onDelete: Cascade)
+   923→  comment  Comment?  @relation("CommentReports", fields: [targetId], references: [id], onDelete: Cascade)
+   924→
+   925→  @@index([reporterId])
+   926→  @@index([targetType])
+   927→  @@index([targetId])
+   928→  @@index([status])
+   929→  @@map("reports")
+   930→}
+   931→
+   932→// ==================== EDUCATION/COURSES ====================
+   933→
+   934→model Course {
+   935→  id           String       @id @default(cuid())
+   936→  churchId     String
+   937→  title        String
+   938→  description  String?
+   939→  image        String?
+   940→  instructorId String?
+   941→  status       CourseStatus  @default(DRAFT)
+   942→  maxStudents  Int?
+   943→  createdAt    DateTime      @default(now())
+   944→  updatedAt    DateTime      @updatedAt
+   945→
+   946→  // Relations
+   947→  church      Church         @relation(fields: [churchId], references: [id], onDelete: Cascade)
+   948→  instructor  User?          @relation("CourseInstructor", fields: [instructorId], references: [id])
+   949→  modules     CourseModule[]
+   950→  enrollments Enrollment[]
+   951→
+   952→  @@index([churchId])
+   953→  @@index([instructorId])
+   954→  @@index([status])
+   955→  @@map("courses")
+   956→}
+   957→
+   958→model CourseModule {
+   959→  id          String   @id @default(cuid())
+   960→  courseId    String
+   961→  title       String
+   962→  description String?
+   963→  order       Int      @default(0)
+   964→  createdAt   DateTime @default(now())
+   965→  updatedAt   DateTime @updatedAt
+   966→
+   967→  // Relations
+   968→  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+   969→  lessons Lesson[]
+   970→
+   971→  @@index([courseId])
+   972→  @@map("course_modules")
+   973→}
+   974→
+   975→model Lesson {
+   976→  id          String    @id @default(cuid())
+   977→  moduleId    String
+   978→  title       String
+   979→  content     String?
+   980→  videoUrl    String?
+   981→  documentUrl String?
+   982→  duration    Int?      // in minutes
+   983→  order       Int       @default(0)
+   984→  createdAt   DateTime  @default(now())
+   985→  updatedAt   DateTime  @updatedAt
+   986→
+   987→  // Relations
+   988→  module CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+   989→
+   990→  @@index([moduleId])
+   991→  @@map("lessons")
+   992→}
+   993→
+   994→model Enrollment {
+   995→  id          String    @id @default(cuid())
+   996→  courseId    String
+   997→  userId      String
+   998→  progress    Float     @default(0) // 0-100 percentage
+   999→  completedAt DateTime?
+  1000→  enrolledAt  DateTime  @default(now())
+  1001→  updatedAt   DateTime  @updatedAt
+  1002→
+  1003→  // Relations
+  1004→  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  1005→  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  1006→
+  1007→  @@unique([courseId, userId])
+  1008→  @@index([courseId])
+  1009→  @@index([userId])
+  1010→  @@map("enrollments")
+  1011→}
+  1012→
+  1013→// ==================== NOTIFICATIONS ====================
+  1014→
+  1015→model Notification {
+  1016→  id        String           @id @default(cuid())
+  1017→  userId    String
+  1018→  churchId  String?
+  1019→  type      NotificationType
+  1020→  title     String
+  1021→  message   String
+  1022→  data      String?          // JSON string for additional data
+  1023→  isRead    Boolean          @default(false)
+  1024→  readAt    DateTime?
+  1025→  actionUrl String?
+  1026→  createdAt DateTime         @default(now())
+  1027→  updatedAt DateTime         @updatedAt
+  1028→
+  1029→  // Relations
+  1030→  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  1031→  church Church? @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  1032→
+  1033→  @@index([userId])
+  1034→  @@index([churchId])
+  1035→  @@index([isRead])
+  1036→  @@index([createdAt])
+  1037→  @@map("notifications")
+  1038→}
+  1039→
