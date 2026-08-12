@@ -88,7 +88,7 @@ const leadership = [
     bio: "Plus de 20 ans de ministère pastoral. Passionné par l'enseignement biblique et le développement des leaders.",
     avatar: null,
     initials: "MD",
-    email: "m.dupont@churchconnect.app",
+    email: "m.dupont@archedamour.app",
   },
   {
     name: "Pasteur Sophie Martin",
@@ -96,7 +96,7 @@ const leadership = [
     bio: "Dédicacée à accompagner les femmes et les familles dans leur marche spirituelle.",
     avatar: null,
     initials: "SM",
-    email: "s.martin@churchconnect.app",
+    email: "s.martin@archedamour.app",
   },
   {
     name: "Jean-Pierre Laurent",
@@ -104,7 +104,7 @@ const leadership = [
     bio: "Musicien et compositeur, il dirige notre ministère de louange avec passion et excellence.",
     avatar: null,
     initials: "JL",
-    email: "jp.laurent@churchconnect.app",
+    email: "jp.laurent@archedamour.app",
   },
   {
     name: "Marie-Claire Dubois",
@@ -112,13 +112,13 @@ const leadership = [
     bio: "Son cœur est pour la connexion communautaire et la croissance spirituelle à travers les petits groupes.",
     avatar: null,
     initials: "MC",
-    email: "mc.dubois@churchconnect.app",
+    email: "mc.dubois@archedamour.app",
   },
 ];
 
 // Timeline milestones
 const timeline = [
-  { year: "2005", event: "Fondation de ChurchConnect avec 15 membres fondateurs" },
+  { year: "2005", event: "Fondation de Arche d'Amour avec 15 membres fondateurs" },
   { year: "2010", event: "Inauguration du temple actuel" },
   { year: "2015", event: "Lancement des groupes de vie (25 groupes)" },
   { year: "2018", event: "Début des diffusions en direct" },
@@ -173,7 +173,7 @@ export default function AboutPage() {
             className="max-w-3xl"
           >
             <PageHeader
-              title="À Propos de ChurchConnect"
+              title="À Propos de Arche d'Amour"
               description="Découvrez notre histoire, notre mission et les valeurs qui guident notre communauté depuis plus de 19 ans."
               breadcrumbs={[{ label: "À propos" }]}
               className="text-white [&_h1]:text-white [&_p]:text-white/80 [&_li]:text-white/60 [&_a]:text-white hover:[&_a]:text-white"

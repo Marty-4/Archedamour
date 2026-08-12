@@ -1,5 +1,5 @@
 /**
- * ChurchConnect Mock Data
+ * Arche d'Amour Mock Data
  * Realistic French church data for dashboards
  */
 
@@ -22,7 +22,7 @@ export interface UserProfile {
 export const currentUser: UserProfile = {
   id: "usr_001",
   name: "Marie-Claire Moké",
-  email: "marie.moke@churchconnect.app",
+  email: "marie.moke@archedamour.app",
   avatar: null,
   role: "MEMBER",
   phone: "+243 81 234 5678",
@@ -35,7 +35,7 @@ export const adminUser: UserProfile = {
   ...currentUser,
   id: "adm_001",
   name: "Pasteur Jean-Marc Lumbu",
-  email: "pasteur.lumbu@churchconnect.app",
+  email: "pasteur.lumbu@archedamour.app",
   role: "ADMIN",
   department: "Direction",
   group: "Conseil d'Administration"

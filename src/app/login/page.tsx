@@ -88,7 +88,7 @@ export default function LoginPage() {
       await login(data.email, data.password);
       setIsSuccess(true);
       toast.success('Connexion réussie!', {
-        description: 'Bienvenue sur ChurchConnect',
+        description: "Bienvenue sur Arche d'Amour",
       });
       
       // Redirect after success animation
@@ -140,7 +140,7 @@ export default function LoginPage() {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="text-5xl font-bold mb-4 text-center font-serif"
           >
-            ChurchConnect
+            Arche d'Amour
           </motion.h1>
 
           <motion.p
@@ -230,7 +230,7 @@ export default function LoginPage() {
                       Bienvenue
                     </CardTitle>
                     <CardDescription className="text-center text-base">
-                      Connectez-vous à votre compte ChurchConnect
+                      Connectez-vous à votre compte Arche d'Amour
                     </CardDescription>
                   </motion.div>
                 </CardHeader>

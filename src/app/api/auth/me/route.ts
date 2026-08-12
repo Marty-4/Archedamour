@@ -1,5 +1,5 @@
 /**
- * ChurchConnect - Get Current User API Route
+ * Arche d'Amour - Get Current User API Route
  * GET /api/auth/me
  * 
  * Returns the currently authenticated user based on session token

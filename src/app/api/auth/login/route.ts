@@ -1,5 +1,5 @@
 /**
- * ChurchConnect - Login API Route
+ * Arche d'Amour - Login API Route
  * POST /api/auth/login
  * 
  * Handles user authentication and session creation
@@ -23,21 +23,21 @@ const DEMO_MODE = true;
 const DEMO_USERS = [
   {
     id: 'demo-user-1',
-    email: 'pasteur@churchconnect.com',
+    email: 'pasteur@archedamour.com',
     name: 'Pasteur Jean',
     password: 'password123',
     role: 'PASTOR' as const,
   },
   {
     id: 'demo-user-2',
-    email: 'admin@churchconnect.com',
+    email: 'admin@archedamour.com',
     name: 'Admin Marie',
     password: 'admin123',
     role: 'ADMIN' as const,
   },
   {
     id: 'demo-user-3',
-    email: 'membre@churchconnect.com',
+    email: 'membre@archedamour.com',
     name: 'Membre Pierre',
     password: 'membre123',
     role: 'MEMBER' as const,

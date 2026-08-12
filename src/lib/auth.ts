@@ -1,5 +1,5 @@
 /**
- * ChurchConnect Authentication Utilities
+ * Arche d'Amour Authentication Utilities
  * Helper functions for authentication, session management, and role checking
  */
 
@@ -7,7 +7,7 @@ import { Role } from '@prisma/client';
 
 // Session configuration
 export const SESSION_CONFIG = {
-  cookieName: 'churchconnect_session',
+  cookieName: 'archedamour_session',
   maxAge: 60 * 60 * 24 * 7, // 7 days
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',

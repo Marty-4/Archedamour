@@ -95,7 +95,7 @@ const leadership = [
     bio: "Plus de 20 ans de ministère pastoral. Passionné par l'enseignement biblique et le développement des leaders. Docteur en théologie systématique.",
     avatar: null,
     initials: "JL",
-    email: "jm.lumbu@churchconnect.app",
+    email: "jm.lumbu@archedamour.app",
   },
   {
     name: "Pasteure Emmanuel Kamba",
@@ -103,7 +103,7 @@ const leadership = [
     bio: "Dédicacé à accompagner les jeunes et les familles dans leur marche spirituelle. Spécialiste en counseling chrétien.",
     avatar: null,
     initials: "EK",
-    email: "e.kamba@churchconnect.app",
+    email: "e.kamba@archedamour.app",
   },
   {
     name: "Sœur Grace Mutombo",
@@ -111,7 +111,7 @@ const leadership = [
     bio: "Son cœur est pour l'épanouissement des femmes et l'éducation spirituelle des enfants selon les principes bibliques.",
     avatar: null,
     initials: "GM",
-    email: "g.mutombo@churchconnect.app",
+    email: "g.mutombo@archedamour.app",
   },
   {
     name: "Frère François Mukendi",
@@ -119,7 +119,7 @@ const leadership = [
     bio: "Musicien et compositeur talentueux, il dirige notre ministère de louange avec passion et excellence depuis 10 ans.",
     avatar: null,
     initials: "FM",
-    email: "f.mukendi@churchconnect.app",
+    email: "f.mukendi@archedamour.app",
   },
   {
     name: "Marie-Claire Moké",
@@ -127,7 +127,7 @@ const leadership = [
     bio: "Passionnée par la connexion communautaire et la croissance spirituelle à travers les petits groupes de vie.",
     avatar: null,
     initials: "MM",
-    email: "mc.moke@churchconnect.app",
+    email: "mc.moke@archedamour.app",
   },
   {
     name: "Patrice Mbemba",
@@ -135,13 +135,13 @@ const leadership = [
     bio: "Visionnaire pour les missions locales et internationales. Il coordonne nos efforts d'évangélisation et d'action sociale.",
     avatar: null,
     initials: "PM",
-    email: "p.mbemba@churchconnect.app",
+    email: "p.mbemba@archedamour.app",
   },
 ];
 
 // Timeline milestones
 const timeline = [
-  { year: "2005", event: "Fondation de ChurchConnect avec 15 membres fondateurs" },
+  { year: "2005", event: "Fondation de Arche d'Amour avec 15 membres fondateurs" },
   { year: "2008", event: "Premier temple établi au centre-ville" },
   { year: "2012", event: "Lancement du ministère des jeunes (100+ jeunes)" },
   { year: "2015", event: "Création des groupes de maison (25 groupes)" },
@@ -214,7 +214,7 @@ export default function AboutPage() {
             className="max-w-3xl"
           >
             <PageHeader
-              title="À Propos de ChurchConnect"
+              title="À Propos de Arche d'Amour"
               description="Découvrez notre histoire, notre mission et les valeurs qui guident notre communauté depuis plus de 19 ans."
               breadcrumbs={[{ label: "À propos" }]}
               className="text-white [&_h1]:text-white [&_p]:text-white/80 [&_li]:text-white/60 [&_a]:text-white hover:[&_a]:text-white"

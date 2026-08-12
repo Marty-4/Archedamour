@@ -172,7 +172,10 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // Use requestAnimationFrame to avoid synchronous setState in effect
+    requestAnimationFrame(() => {
+      setMounted(true);
+    });
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);

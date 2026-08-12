@@ -110,7 +110,7 @@ export function PublicLayout({ children, className }: PublicLayoutProps) {
                   <span className="text-white font-serif font-bold text-lg">C</span>
                 </div>
                 <span className="font-serif text-xl font-semibold">
-                  Church<span className="text-primary">Connect</span>
+                  Arche d'<span className="text-primary">Amour</span>
                 </span>
               </Link>
               <p className="text-muted-foreground text-sm leading-relaxed max-w-sm">
@@ -135,11 +135,11 @@ export function PublicLayout({ children, className }: PublicLayoutProps) {
                   <span>+33 1 23 45 67 89</span>
                 </a>
                 <a
-                  href="mailto:contact@churchconnect.app"
+                  href="mailto:contact@archedamour.app"
                   className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Mail className="h-4 w-4 text-primary shrink-0" />
-                  <span>contact@churchconnect.app</span>
+                  <span>contact@archedamour.app</span>
                 </a>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="h-4 w-4 text-primary shrink-0" />
@@ -224,7 +224,7 @@ export function PublicLayout({ children, className }: PublicLayoutProps) {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                © {new Date().getFullYear()} ChurchConnect. Fait avec
+                © {new Date().getFullYear()} Arche d'Amour. Fait avec
                 <Heart className="w-3 h-3 text-red-500 fill-red-500" />
                 pour la gloire de Dieu.
               </p>

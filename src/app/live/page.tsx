@@ -28,8 +28,7 @@ import {
   Eye,
   Smile,
   ThumbsUp,
-  ClappingHands,
-  Pray,
+  HandMetal,
   Flame,
   Star,
   History,
@@ -167,8 +166,8 @@ const initialChatMessages: ChatMessage[] = [
 const emojiReactions = [
   { icon: Heart, label: '❤️', count: 24 },
   { icon: ThumbsUp, label: '👍', count: 18 },
-  { icon: ClappingHands, label: '👏', count: 12 },
-  { icon: Pray, label: '🙏', count: 31 },
+  { icon: HandMetal, label: '👏', count: 12 },
+  { icon: Heart, label: '🙏', count: 31 },
   { icon: Flame, label: '🔥', count: 8 },
   { icon: Star, label: '⭐', count: 5 },
 ];

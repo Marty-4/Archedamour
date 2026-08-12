@@ -99,7 +99,7 @@ const allEvents: Event[] = [
   {
     id: 5,
     title: "Journée Portes Ouvertes",
-    description: "Venez découvrir ChurchConnect ! Visite du temple, présentation des ministères, rencontre avec l'équipe pastorale. Tout le monde est bienvenu.",
+    description: "Venez découvrir Arche d'Amour ! Visite du temple, présentation des ministères, rencontre avec l'équipe pastorale. Tout le monde est bienvenu.",
     date: "2025-09-21",
     time: "11h00",
     endTime: "16h00",

@@ -159,7 +159,7 @@ export default function RegisterPage() {
       });
       setIsSuccess(true);
       toast.success('Compte créé avec succès!', {
-        description: 'Bienvenue dans la communauté ChurchConnect',
+        description: "Bienvenue dans la communauté Arche d'Amour",
       });
 
       // Redirect after success animation
@@ -313,7 +313,7 @@ export default function RegisterPage() {
                       Créer un compte
                     </CardTitle>
                     <CardDescription className="text-center text-base">
-                      Rejoignez la communauté ChurchConnect
+                      Rejoignez la communauté Arche d'Amour
                     </CardDescription>
                   </motion.div>
                 </CardHeader>

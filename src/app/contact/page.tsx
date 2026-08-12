@@ -48,7 +48,7 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email",
-    lines: ["contact@churchconnect.app"],
+    lines: ["contact@archedamour.app"],
     action: "Envoyer un email",
   },
 ];
@@ -484,7 +484,7 @@ export default function ContactPage() {
                 <div className="absolute bottom-4 left-4 right-4 bg-background/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h3 className="font-semibold text-foreground">ChurchConnect - Temple Principal</h3>
+                      <h3 className="font-semibold text-foreground">Arche d'Amour - Temple Principal</h3>
                       <p className="text-sm text-muted-foreground">123 Rue du Temple, 75001 Paris</p>
                     </div>
                     <Button size="sm" variant="outline" className="shrink-0 rounded-lg">

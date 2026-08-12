@@ -1,5 +1,5 @@
 /**
- * ChurchConnect Authentication Store
+ * Arche d'Amour Authentication Store
  * Zustand store for managing authentication state
  */
 
@@ -215,7 +215,7 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'churchconnect-auth',
+      name: 'archedamour-auth',
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,

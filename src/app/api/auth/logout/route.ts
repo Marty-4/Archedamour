@@ -1,5 +1,5 @@
 /**
- * ChurchConnect - Logout API Route
+ * Arche d'Amour - Logout API Route
  * POST /api/auth/logout
  * 
  * Handles user logout and session cleanup

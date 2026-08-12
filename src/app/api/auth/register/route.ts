@@ -1,5 +1,5 @@
 /**
- * ChurchConnect - Register API Route
+ * Arche d'Amour - Register API Route
  * POST /api/auth/register
  * 
  * Handles user registration and account creation

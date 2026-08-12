@@ -62,6 +62,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0);
+  const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
 
   // Initialize socket connection
   useEffect(() => {
@@ -90,6 +91,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     });
 
     socketRef.current = socket;
+    // Defer setState to avoid synchronous call in effect
+    requestAnimationFrame(() => {
+      setSocketInstance(socket);
+    });
 
     // Connection events
     socket.on('connect', () => {
@@ -120,12 +125,13 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     return () => {
       socket.disconnect();
       socketRef.current = null;
+      setSocketInstance(null);
     };
   }, [userId, userName, userRole, token, autoConnect]);
 
   // Return socket and state
   return {
-    socket: socketRef.current,
+    socket: socketInstance,
     isConnected,
     onlineUsers,
   };
