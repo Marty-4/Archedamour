@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { motion } from '@/lib/no-motion';
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   CalendarDays,
@@ -25,20 +26,12 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
-import {
-  currentUser,
-  dailyVerse,
-  upcomingServices,
-  recentSermons,
-  prayerRequests,
-  myGroup,
-  upcomingEvents,
-  announcements,
-  notifications,
-} from "@/lib/mock-data";
+import { LiveStartedToast } from "@/components/shared/live-started-toast";
+import { DashboardSkeleton } from "@/components/shared/loading-skeleton";
+import { LiveDashboardAlert } from "@/components/member/live-dashboard-alert";
 
 // Animation variants
 const containerVariants = {
@@ -76,42 +69,24 @@ const getCurrentDate = () => {
 };
 
 // Quick Stats Component
-function QuickStats() {
-  const stats = [
-    {
-      label: "Prochain culte",
-      value: "Dimanche 22 Déc",
-      subvalue: "07:00 - Temple Principal",
-      icon: CalendarClock,
-      color: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
-    },
-    {
-      label: "Événements à venir",
-      value: upcomingEvents.length.toString(),
-      subvalue: "2 cette semaine",
-      icon: CalendarDays,
-      color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-    },
-    {
-      label: "Demandes de prière",
-      value: prayerRequests.length.toString(),
-      subvalue: `${prayerRequests.reduce((acc, p) => acc + p.prayersCount, 0)} prières`,
-      icon: Heart,
-      color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
-    },
-    {
-      label: "Dons ce mois",
-      value: "25 000 FCFA",
-      subvalue: "+12% vs dernier mois",
-      icon: CreditCard,
-      color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    },
-  ];
+function QuickStats({ stats }: { stats: any[] }) {
+  const icons = [CalendarClock, CalendarDays, Heart, CreditCard];
+  const colors = ["bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400", "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400", "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400", "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"];
+
+  if (!stats.length) {
+    return (
+      <Card className="border-dashed border-border/80 bg-muted/20">
+        <CardContent className="p-6 text-sm text-muted-foreground">
+          Aucune statistique disponible pour le moment.
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, index) => {
-        const Icon = stat.icon;
+        const Icon = icons[index] ?? CalendarClock;
         return (
           <motion.div
             key={stat.label}
@@ -128,7 +103,7 @@ function QuickStats() {
                     <p className="text-lg font-bold text-foreground">{stat.value}</p>
                     <p className="text-xs text-muted-foreground">{stat.subvalue}</p>
                   </div>
-                  <div className={`p-2.5 rounded-xl ${stat.color}`}>
+                  <div className={`p-2.5 rounded-xl ${colors[index]}`}>
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>
@@ -142,7 +117,19 @@ function QuickStats() {
 }
 
 // Upcoming Services Component
-function UpcomingServices() {
+function UpcomingServices({ upcomingServices }: { upcomingServices: any[] }) {
+  if (!upcomingServices.length) {
+    return (
+      <motion.div variants={itemVariants}>
+        <Card className="border-dashed border-border/80 bg-muted/20">
+          <CardContent className="p-6 text-sm text-muted-foreground">
+            Aucun culte prévu pour le moment. Revenez bientôt pour voir les prochains rendez-vous.
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div variants={itemVariants}>
       <Card className="border-border/50">
@@ -209,7 +196,19 @@ function UpcomingServices() {
 }
 
 // Latest Sermons Component
-function LatestSermons() {
+function LatestSermons({ recentSermons }: { recentSermons: any[] }) {
+  if (!recentSermons.length) {
+    return (
+      <motion.div variants={itemVariants}>
+        <Card className="border-dashed border-border/80 bg-muted/20">
+          <CardContent className="p-6 text-sm text-muted-foreground">
+            Aucune prédication récente pour le moment.
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div variants={itemVariants}>
       <Card className="border-border/50">
@@ -271,7 +270,7 @@ function LatestSermons() {
 }
 
 // Prayer Requests Feed Component
-function PrayerRequestsFeed() {
+function PrayerRequestsFeed({ prayerRequests }: { prayerRequests: any[] }) {
   const [prayedFor, setPrayedFor] = useState<string[]>([]);
 
   const handlePray = (id: string) => {
@@ -279,6 +278,18 @@ function PrayerRequestsFeed() {
       setPrayedFor([...prayedFor, id]);
     }
   };
+
+  if (!prayerRequests.length) {
+    return (
+      <motion.div variants={itemVariants}>
+        <Card className="border-dashed border-border/80 bg-muted/20">
+          <CardContent className="p-6 text-sm text-muted-foreground">
+            Aucune demande de prière n’a été publiée pour le moment.
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div variants={itemVariants}>
@@ -351,7 +362,7 @@ function PrayerRequestsFeed() {
 }
 
 // My Groups Component
-function MyGroupsCard() {
+function MyGroupsCard({ myGroup }: { myGroup: any }) {
   return (
     <motion.div variants={itemVariants}>
       <Card className="border-border/50">
@@ -363,6 +374,7 @@ function MyGroupsCard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {myGroup ? <>
             <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50 to-amber-50 dark:from-violet-950/20 dark:to-amber-950/10">
               <h4 className="font-semibold text-sm mb-1">{myGroup.name}</h4>
               <p className="text-xs text-muted-foreground mb-3">{myGroup.description}</p>
@@ -406,6 +418,7 @@ function MyGroupsCard() {
             <Button variant="outline" className="w-full" size="sm" asChild>
               <Link href="/member/groupes">Voir mon groupe</Link>
             </Button>
+            </> : <p className="py-6 text-center text-sm text-muted-foreground">Vous n&apos;êtes rattaché à aucun groupe pour le moment.</p>}
           </div>
         </CardContent>
       </Card>
@@ -455,7 +468,19 @@ function QuickActions() {
 }
 
 // Upcoming Events Mini Component
-function UpcomingEventsMini() {
+function UpcomingEventsMini({ upcomingEvents }: { upcomingEvents: any[] }) {
+  if (!upcomingEvents.length) {
+    return (
+      <motion.div variants={itemVariants}>
+        <Card className="border-dashed border-border/80 bg-muted/20">
+          <CardContent className="p-6 text-sm text-muted-foreground">
+            Aucun événement à venir pour le moment.
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div variants={itemVariants}>
       <Card className="border-border/50">
@@ -499,7 +524,19 @@ function UpcomingEventsMini() {
 }
 
 // Announcements Component
-function AnnouncementsCard() {
+function AnnouncementsCard({ announcements }: { announcements: any[] }) {
+  if (!announcements.length) {
+    return (
+      <motion.div variants={itemVariants}>
+        <Card className="border-dashed border-border/80 bg-muted/20">
+          <CardContent className="p-6 text-sm text-muted-foreground">
+            Aucune annonce à afficher pour le moment.
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div variants={itemVariants}>
       <Card className="border-border/50">
@@ -542,8 +579,37 @@ function AnnouncementsCard() {
 }
 
 // Main Member Dashboard Component
+const emptyDashboard = { currentUser: { name: "Membre", email: "", image: null, role: "MEMBER" }, dailyVerse: { reference: "" }, quickStats: [], upcomingServices: [], recentSermons: [], prayerRequests: [], myGroup: null, upcomingEvents: [], announcements: [], unreadNotifications: 0 };
+
 export default function MemberDashboardPage() {
-  const firstName = currentUser.name.split(' ')[0];
+  const [dashboard, setDashboard] = useState<any>(emptyDashboard);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/member/dashboard")
+      .then((response) => {
+        if (response.status === 401) { router.replace("/login"); return Promise.reject(new Error("Session expirée")); }
+        return response.ok ? response.json() : Promise.reject(new Error("Dashboard indisponible"));
+      })
+      .then(setDashboard)
+      .catch(() => {
+        // Erreur déjà reflétée par l'UI (état vide) — pas de bruit en console.
+      })
+      .finally(() => setLoading(false));
+  }, [router]);
+
+  const { currentUser, dailyVerse, quickStats, upcomingServices, recentSermons, prayerRequests, myGroup, upcomingEvents, announcements, unreadNotifications, liveStreams } = dashboard;
+  const firstName = (currentUser.name || "Membre").split(' ')[0];
+
+  if (loading) {
+    return (
+      <DashboardLayout user={currentUser} variant="member">
+        <LiveStartedToast target="/member/live" />
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout user={currentUser} variant="member">
@@ -553,17 +619,19 @@ export default function MemberDashboardPage() {
         animate="visible"
         className="space-y-6"
       >
+        <LiveDashboardAlert initialStreams={liveStreams ?? []} />
         {/* Header Section */}
         <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
             <Avatar className="h-14 w-14 ring-2 ring-primary/20">
+              <AvatarImage src={currentUser.image ?? undefined} alt={currentUser.name || "Membre"} />
               <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-lg font-semibold">
                 {firstName.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div>
               <h1 className="text-2xl font-bold font-serif">
-                Bonjour, {firstName}! 👋
+                Salut, {firstName}! 👋
               </h1>
               <p className="text-sm text-muted-foreground">{getCurrentDate()}</p>
             </div>
@@ -581,7 +649,7 @@ export default function MemberDashboardPage() {
             
             <Button variant="outline" size="icon" className="relative h-11 w-11 rounded-xl">
               <Bell className="h-5 w-5" />
-              {notifications.filter(n => !n.read).length > 0 && (
+              {unreadNotifications > 0 && (
                 <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full" />
               )}
             </Button>
@@ -589,23 +657,23 @@ export default function MemberDashboardPage() {
         </motion.div>
 
         {/* Quick Stats Cards */}
-        <QuickStats />
+        <QuickStats stats={quickStats} />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - 2/3 width */}
           <div className="lg:col-span-2 space-y-6">
-            <UpcomingServices />
-            <LatestSermons />
-            <PrayerRequestsFeed />
+            <UpcomingServices upcomingServices={upcomingServices} />
+            <LatestSermons recentSermons={recentSermons} />
+            <PrayerRequestsFeed prayerRequests={prayerRequests} />
           </div>
 
           {/* Right Column - 1/3 width */}
           <div className="space-y-6">
-            <MyGroupsCard />
+            <MyGroupsCard myGroup={myGroup} />
             <QuickActions />
-            <UpcomingEventsMini />
-            <AnnouncementsCard />
+            <UpcomingEventsMini upcomingEvents={upcomingEvents} />
+            <AnnouncementsCard announcements={announcements} />
           </div>
         </div>
       </motion.div>

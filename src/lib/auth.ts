@@ -1,19 +1,45 @@
 /**
  * Arche d'Amour Authentication Utilities
  * Helper functions for authentication, session management, and role checking
+ * 
+ * Note: This module uses Web Crypto API for compatibility with Edge Runtime.
+ * All cryptographic operations are async.
  */
 
 import { Role } from '@prisma/client';
 
-// Session configuration
+// Session configuration - SEC-007: secure always true, SEC-008: sameSite strict
 export const SESSION_CONFIG = {
   cookieName: 'archedamour_session',
   maxAge: 60 * 60 * 24 * 7, // 7 days
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  secure: true, // Always secure, even in development
+  sameSite: 'strict' as const, // Changed from lax to strict for CSRF protection
   path: '/',
 };
+
+/**
+ * Détermine si les cookies de session doivent porter le flag `Secure`.
+ * Règle : uniquement si la requête arrive réellement en HTTPS (via
+ * x-forwarded-proto derrière un proxy, ou protocole de l'URL en direct).
+ *
+ * Pourquoi pas « toujours true » : un navigateur JETTE un cookie `Secure`
+ * reçu sur du HTTP simple → en dev LAN (http://192.168.x.x:3000 depuis un
+ * téléphone), la session n'était jamais stockée et le middleware renvoyait
+ * sans fin vers /login. Sur localhost et en production HTTPS, le flag reste
+ * posé normalement.
+ */
+export function shouldUseSecureCookies(request: Request): boolean {
+  const forwardedProto = request.headers.get('x-forwarded-proto');
+  if (forwardedProto) {
+    return forwardedProto.split(',')[0].trim() === 'https';
+  }
+  try {
+    return new URL(request.url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
 
 // User interface for session (without password)
 export interface AuthUser {
@@ -32,26 +58,152 @@ export interface SessionData {
   expiresAt: number;
 }
 
-/**
- * Generate a simple hash for password (demo purposes)
- * In production, use bcrypt or argon2
- */
-export function hashPassword(password: string): string {
-  // Simple hash for demo - NOT secure for production!
-  let hash = 0;
-  for (let i = 0; i < password.length; i++) {
-    const char = password.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+// Hash prefix for identifying algorithm
+const PBKDF2_PREFIX = 'pbkdf2';
+
+// Helper: Convert hex string to Uint8Array
+function hexToUint8Array(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
   }
-  return `hash_${Math.abs(hash).toString(36)}_${btoa(password).slice(0, 20)}`;
+  return bytes;
+}
+
+// Helper: Convert Uint8Array to hex string
+function uint8ArrayToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+// Helper: Generate random bytes (replaces node:crypto.randomBytes)
+function generateRandomBytes(length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+// Helper: PBKDF2 using Web Crypto API (replaces node:crypto.pbkdf2Sync)
+async function pbkdf2(
+  password: string,
+  salt: Uint8Array,
+  iterations: number,
+  keyLength: number,
+  digest: string
+): Promise<Uint8Array> {
+  const encoder = new TextEncoder();
+  const passwordBuffer = encoder.encode(password);
+
+  const hashAlgorithm = digest === 'sha256' ? 'SHA-256' : digest === 'sha512' ? 'SHA-512' : 'SHA-1';
+
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    passwordBuffer,
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt as BufferSource,
+      iterations: iterations,
+      hash: hashAlgorithm,
+    },
+    keyMaterial,
+    keyLength * 8
+  );
+
+  return new Uint8Array(derivedBits);
+}
+
+// Helper: Timing-safe comparison (replaces node:crypto.timingSafeEqual)
+// Note: Web Crypto API does not have a standard timingSafeEqual method.
+// This implementation uses a constant-time comparison algorithm.
+function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a[i] ^ b[i];
+  }
+  return result === 0;
 }
 
 /**
- * Verify password against stored hash (demo)
+ * Hash a password using PBKDF2 with Web Crypto API
+ * - Uses 310,000 iterations for SHA-256
+ * - Generates a 16-byte salt
+ * - Produces a 32-byte derived key
  */
-export function verifyPassword(password: string, hashedPassword: string): boolean {
-  return hashPassword(password) === hashedPassword;
+export async function hashPassword(password: string): Promise<string> {
+  const iterations = 310_000;
+  const salt = generateRandomBytes(16);
+  const derivedKey = await pbkdf2(password, salt, iterations, 32, 'sha256');
+  return `${PBKDF2_PREFIX}$sha256$${iterations}$${uint8ArrayToHex(salt)}$${uint8ArrayToHex(derivedKey)}`;
+}
+
+/**
+ * Verify password against stored hash
+ * Supports PBKDF2 hashes for backward compatibility
+ * - Uses Web Crypto API for timing-safe comparison
+ */
+export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  // Determine algorithm from prefix
+  if (hashedPassword.startsWith(`${PBKDF2_PREFIX}$`)) {
+    // PBKDF2 hash (backward compatibility)
+    const parts = hashedPassword.split('$');
+    
+    // Expected format: pbkdf2$sha256$iterations$salt_hex$key_hex
+    if (parts.length !== 5) {
+      return false;
+    }
+
+    const [, digest, iterationValue, saltValue, keyValue] = parts;
+
+    if (digest !== 'sha256' || !iterationValue || !saltValue || !keyValue) {
+      return false;
+    }
+
+    const iterations = Number(iterationValue);
+    if (!Number.isSafeInteger(iterations) || iterations < 1) return false;
+
+    try {
+      const expectedKey = hexToUint8Array(keyValue);
+      const salt = hexToUint8Array(saltValue);
+      const derivedKey = await pbkdf2(password, salt, iterations, expectedKey.length, digest);
+      
+      if (expectedKey.length !== derivedKey.length) {
+        return false;
+      }
+      
+      return timingSafeEqual(expectedKey, derivedKey);
+    } catch {
+      return false;
+    }
+  }
+  
+  // Unknown format - try to handle legacy Argon2 hashes
+  // Since Argon2 is not available in Edge Runtime, we return false
+  // Users with Argon2 hashes will need to reset their password
+  console.warn('Unsupported hash format - password reset required');
+  return false;
+}
+
+/**
+ * Synchronous version of verifyPassword - DEPRECATED
+ * This function is not available in Edge Runtime and should not be used.
+ * Use verifyPassword() instead.
+ * @deprecated Use verifyPassword() instead
+ */
+export function verifyPasswordSync(password: string, hashedPassword: string): boolean {
+  throw new Error(
+    'verifyPasswordSync is not supported in Edge Runtime. Use verifyPassword() instead.'
+  );
 }
 
 /**

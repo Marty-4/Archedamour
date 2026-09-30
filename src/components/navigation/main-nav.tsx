@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from '@/lib/no-motion';
 import {
   Menu,
   X,
@@ -120,24 +121,26 @@ export function MainNav({ className }: MainNavProps) {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
-          ? "bg-background/80 backdrop-blur-lg border-b border-border shadow-sm"
+          ? "bg-sky-50/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-sky-100/80 dark:border-slate-800/70 shadow-sm"
           : "bg-transparent",
         className
       )}
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
+        <div className="flex items-center justify-between h-16 lg:h-20">            {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 group"
+            className="flex items-center gap-3 group"
           >
-            <div className="relative w-10 h-10 rounded-xl gradient-spiritual flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-              <span className="text-white font-serif font-bold text-lg">C</span>
-              <div className="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
+            <Image
+              src="/icons/LogoArche.jpg"
+              alt="Arche d'Amour"
+              width={48}
+              height={48}
+              className="rounded-xl border border-white/40 dark:border-slate-700/50 shadow-md group-hover:shadow-lg transition-shadow object-cover"
+            />
             <span className="font-serif text-xl font-semibold hidden sm:block">
-              Church<span className="text-primary">Connect</span>
+              Arche d&apos;Amour
             </span>
           </Link>
 
@@ -150,8 +153,8 @@ export function MainNav({ className }: MainNavProps) {
                 className={cn(
                   "relative px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2",
                   isActive(item.href)
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                    ? "text-sky-700 dark:text-sky-300"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-900/50"
                 )}
               >
                 {isActive(item.href) && (
@@ -189,7 +192,7 @@ export function MainNav({ className }: MainNavProps) {
               asChild
               className="hidden lg:flex gradient-spiritual text-white hover:opacity-90 transition-opacity"
             >
-              <Link href="/connexion">Connexion</Link>
+              <Link href="/login">Connexion</Link>
             </Button>
 
             {/* Mobile menu button */}
@@ -314,7 +317,7 @@ export function MainNav({ className }: MainNavProps) {
                     asChild
                     className="w-full gradient-spiritual text-white hover:opacity-90"
                   >
-                    <Link href="/connexion">Connexion</Link>
+                    <Link href="/login">Connexion</Link>
                   </Button>
                 </div>
               </div>

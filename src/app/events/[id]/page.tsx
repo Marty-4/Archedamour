@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion } from '@/lib/no-motion';
 import {
   Calendar,
   Clock,
@@ -120,7 +120,7 @@ Nous attendons votre présence avec impatience!`,
     address: "Boulevard Lumumba, Quartier Gombe, Kinshasa",
     category: "Retraite",
     organizer: {
-      name: "Pasteur Jean-Marc Lumbu",
+      name: "Pasteur Lesty Paka",
       role: "Pasteur Principal",
       avatar: null,
       initials: "JL",

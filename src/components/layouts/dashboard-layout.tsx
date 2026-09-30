@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from '@/lib/no-motion';
 import {
   LayoutDashboard,
   Users,
@@ -24,7 +25,6 @@ import {
   Home,
   HelpCircle,
   UserCircle,
-  Church,
   Music,
   BookOpen,
   HandHeart,
@@ -34,10 +34,12 @@ import {
   Video,
   FileText,
   UsersRound,
+  MessageCircleMore,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuthStore } from "@/stores/auth-store";
 import {
   Tooltip,
   TooltipContent,
@@ -49,7 +51,14 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 // Member navigation items
-const memberNavItems = [
+type NavigationItem = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string | number;
+};
+
+const memberNavItems: NavigationItem[] = [
   {
     label: "Tableau de bord",
     href: "/member/dashboard",
@@ -71,6 +80,11 @@ const memberNavItems = [
     icon: MicIcon,
   },
   {
+    label: "Live",
+    href: "/member/live",
+    icon: Video,
+  },
+  {
     label: "Événements",
     href: "/member/evenements",
     icon: CalendarDays,
@@ -90,9 +104,14 @@ const memberNavItems = [
     href: "/member/groupes",
     icon: FolderOpen,
   },
+  {
+    label: "Discussion",
+    href: "/member/groupes-chat",
+    icon: MessageCircleMore,
+  },
 ];
 
-const memberSecondaryNavItems = [
+const memberSecondaryNavItems: NavigationItem[] = [
   {
     label: "Communauté",
     href: "/member/communaute",
@@ -111,7 +130,7 @@ const memberSecondaryNavItems = [
 ];
 
 // Admin navigation items
-const adminNavItems = [
+const adminNavItems: NavigationItem[] = [
   {
     label: "Tableau de bord",
     href: "/admin/dashboard",
@@ -197,7 +216,7 @@ const bottomNavItems = [
   },
   {
     label: "Déconnexion",
-    href: "/login",
+    href: "__logout__",
     icon: LogOut,
   },
 ];
@@ -210,9 +229,9 @@ const memberMobileNavItems = [
     icon: LayoutDashboard,
   },
   {
-    label: "Profil",
-    href: "/member/profile",
-    icon: UserCircle,
+    label: "Live",
+    href: "/member/live",
+    icon: Video,
   },
   {
     label: "Prières",
@@ -274,6 +293,7 @@ interface SidebarContentProps {
   isMobile: boolean;
   onMobileClose: () => void;
   onToggleCollapse: () => void;
+  onLogout: () => void | Promise<void>;
 }
 
 // Sidebar Content Component (defined outside to avoid creating during render)
@@ -285,10 +305,24 @@ function SidebarContent({
   isMobile,
   onMobileClose,
   onToggleCollapse,
+  onLogout,
 }: SidebarContentProps) {
   // Select nav items based on variant
-  const mainNavItems = variant === 'admin' ? adminNavItems : memberNavItems;
-  const secondaryNavItems = variant === 'admin' ? adminSecondaryNavItems : memberSecondaryNavItems;
+  let mainNavItems = variant === 'admin' ? adminNavItems : memberNavItems;
+  let secondaryNavItems = variant === 'admin' ? adminSecondaryNavItems : memberSecondaryNavItems;
+
+  // Filtrage par rôle : les rôles staff ne voient que leurs pages autorisées.
+  const role = (user?.role ?? 'MEMBER') as string;
+  if (variant === 'admin' && !['SUPER_ADMIN', 'PASTOR', 'ADMIN'].includes(role)) {
+    const allowed: Record<string, string[]> = {
+      TREASURER: ['/admin/dons', '/admin/rapports'],
+      DEPARTMENT_HEAD: ['/admin/membres', '/admin/groupes', '/admin/departements', '/admin/prieres', '/admin/rapports'],
+      MODERATOR: ['/admin/membres', '/admin/prieres', '/admin/notifications', '/admin/rapports'],
+    };
+    const ok = allowed[role] ?? [];
+    mainNavItems = mainNavItems.filter((item) => ok.includes(item.href));
+    secondaryNavItems = secondaryNavItems.filter((item) => ok.includes(item.href));
+  }
 
   const isActive = (href: string) => {
     if (href === "/member/dashboard" || href === "/admin/dashboard") {
@@ -308,9 +342,13 @@ function SidebarContent({
       >
         {!sidebarCollapsed || isMobile ? (
           <Link href={variant === 'admin' ? '/admin/dashboard' : '/member/dashboard'} className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl gradient-spiritual flex items-center justify-center shadow-md shrink-0">
-              <Church className="h-5 w-5 text-white" />
-            </div>
+            <Image
+              src="/icons/LogoArche.jpg"
+              alt="Arche d'Amour"
+              width={36}
+              height={36}
+              className="rounded-xl shadow-md object-cover shrink-0"
+            />
             <AnimatePresence>
               <motion.span
                 initial={{ opacity: 0 }}
@@ -318,7 +356,7 @@ function SidebarContent({
                 exit={{ opacity: 0 }}
                 className="font-serif text-lg font-semibold whitespace-nowrap"
               >
-                Church<span className="text-primary">Connect</span>
+                Arche d'<span className="text-primary">Amour</span>
               </motion.span>
             </AnimatePresence>
             {variant === 'admin' && (
@@ -329,9 +367,13 @@ function SidebarContent({
           </Link>
         ) : (
           <Link href={variant === 'admin' ? '/admin/dashboard' : '/member/dashboard'}>
-            <div className="w-9 h-9 rounded-xl gradient-spiritual flex items-center justify-center shadow-md">
-              <Church className="h-5 w-5 text-white" />
-            </div>
+            <Image
+              src="/icons/LogoArche.jpg"
+              alt="Arche d'Amour"
+              width={36}
+              height={36}
+              className="rounded-xl shadow-md object-cover"
+            />
           </Link>
         )}
 
@@ -516,6 +558,46 @@ function SidebarContent({
           {bottomNavItems.map((item) => {
             const Icon = item.icon;
 
+            // Déconnexion : bouton qui détruit la session au lieu d'un simple lien.
+            if (item.href === "__logout__") {
+              return (
+                <TooltipProvider key={item.label} delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isMobile) onMobileClose();
+                          void onLogout();
+                        }}
+                        className={cn(
+                          "flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                          sidebarCollapsed && !isMobile && "justify-center px-2"
+                        )}
+                      >
+                        <Icon className="h-5 w-5 shrink-0" />
+                        <AnimatePresence>
+                          {(!sidebarCollapsed || isMobile) && (
+                            <motion.span
+                              initial={{ opacity: 0, width: 0 }}
+                              animate={{ opacity: 1, width: "auto" }}
+                              exit={{ opacity: 0, width: 0 }}
+                              className="whitespace-nowrap overflow-hidden"
+                            >
+                              {item.label}
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </button>
+                    </TooltipTrigger>
+                    {sidebarCollapsed && !isMobile && (
+                      <TooltipContent side="right">{item.label}</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            }
+
             return (
               <TooltipProvider key={item.href} delayDuration={0}>
                 <Tooltip>
@@ -585,7 +667,7 @@ function SidebarContent({
                 </p>
                 <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
                   {variant === 'admin' && <Shield className="w-3 h-3 text-amber-500" />}
-                  {user?.email || "user@churchconnect.app"}
+                  {user?.email || "contact@archedamour.app"}
                 </p>
               </motion.div>
             )}
@@ -611,11 +693,29 @@ interface DashboardLayoutProps {
 // Main Dashboard Layout Component
 export function DashboardLayout({ children, user, variant = 'member' }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const logout = useAuthStore((state) => state.logout);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  // Déconnexion réelle : détruit la session côté serveur puis redirige.
+  const handleLogout = React.useCallback(async () => {
+    await logout();
+    router.push("/login");
+  }, [logout, router]);
+
   // Select mobile nav items based on variant
-  const mobileNavItems = variant === 'admin' ? adminMobileNavItems : memberMobileNavItems;
+  let mobileNavItems = variant === 'admin' ? adminMobileNavItems : memberMobileNavItems;
+  const mobileRole = (user?.role ?? 'MEMBER') as string;
+  if (variant === 'admin' && !['SUPER_ADMIN', 'PASTOR', 'ADMIN'].includes(mobileRole)) {
+    const ok: Record<string, string[]> = {
+      TREASURER: ['/admin/dashboard', '/admin/dons', '/admin/rapports'],
+      DEPARTMENT_HEAD: ['/admin/dashboard', '/admin/membres', '/admin/groupes', '/admin/departements', '/admin/prieres', '/admin/rapports'],
+      MODERATOR: ['/admin/dashboard', '/admin/membres', '/admin/prieres', '/admin/notifications', '/admin/rapports'],
+    };
+    const allowed = ok[mobileRole] ?? [];
+    mobileNavItems = mobileNavItems.filter((item) => item.href === '#' || allowed.includes(item.href));
+  }
 
   const isActive = (href: string) => {
     if (href === "/member/dashboard" || href === "/admin/dashboard") {
@@ -645,6 +745,7 @@ export function DashboardLayout({ children, user, variant = 'member' }: Dashboar
           isMobile={false}
           onMobileClose={handleMobileClose}
           onToggleCollapse={handleToggleCollapse}
+          onLogout={handleLogout}
         />
       </aside>
 
@@ -729,7 +830,10 @@ export function DashboardLayout({ children, user, variant = 'member' }: Dashboar
         {/* Mobile bottom navigation */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border safe-area-pb">
           <div className="flex items-center justify-around h-16">
-            {mobileNavItems.slice(0, -1).map((item) => {
+            {/* Le lien fictif "Plus" (href #) est retiré ici : un vrai bouton existe en bas. */}
+            {mobileNavItems
+              .filter((item) => item.href !== "#")
+              .map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
 
@@ -800,6 +904,7 @@ export function DashboardLayout({ children, user, variant = 'member' }: Dashboar
                 isMobile={true}
                 onMobileClose={handleMobileClose}
                 onToggleCollapse={handleToggleCollapse}
+          onLogout={handleLogout}
               />
             </motion.aside>
           </>

@@ -276,6 +276,15 @@
       oklch(0.98 0.015 230) 100%
     );
   }
+
+  .gradient-spiritual {
+    background: linear-gradient(
+      135deg,
+      oklch(0.64 0.14 235) 0%,
+      oklch(0.62 0.14 240) 40%,
+      oklch(0.55 0.18 255) 100%
+    );
+  }
   
   /* Glass effects - Clean and minimal */
   .glass {
@@ -444,4 +453,22 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: oklch(0.42 0.06 240);
+}
+
+/* ==================================================
+   FORCE TEXT VISIBILITY - disable animations globally
+   This ensures Framer Motion inline styles (opacity/transform)
+   don't hide textual content during initial animation.
+   ================================================== */
+h1,h2,h3,h4,h5,h6,p,span,a,li,label,button,input,textarea,blockquote,cite,strong,em {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Disable all CSS animations and transitions globally to ensure static rendering */
+*, *::before, *::after {
+  animation: none !important;
+  transition: none !important;
 }

@@ -11,13 +11,15 @@
  */
 
 import { createServer } from 'http';
+import { createServer as createHttpsServer } from 'https';
+import { readFileSync } from 'fs';
 import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT) > 0 ? Number(process.env.PORT) : 3001;
 
 // Create HTTP server
-const httpServer = createServer((req, res) => {
+const requestHandler = (req: any, res: any) => {
   // Health check endpoint
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -28,12 +30,25 @@ const httpServer = createServer((req, res) => {
   // Default response
   res.writeHead(404);
   res.end('Not Found');
-});
+};
+
+const httpServer = process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH
+  ? createHttpsServer({
+      key: readFileSync(process.env.SSL_KEY_PATH),
+      cert: readFileSync(process.env.SSL_CERT_PATH),
+    }, requestHandler)
+  : createServer(requestHandler);
 
 // Configure Socket.IO
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ['http://localhost:3000', 'http://21.0.13.22:3000'],
+    origin: (origin, callback) => {
+      if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Origin non autorisée'));
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
@@ -45,22 +60,97 @@ const io = new SocketIOServer(httpServer, {
 // Store for active connections and rooms
 const connectedUsers = new Map<string, { id: string; name?: string; role?: string }>();
 const liveViewers = new Map<string, Set<string>>();
+// Appels audio : room -> (socketId -> participant)
+const liveCalls = new Map<string, Map<string, { socketId: string; userId: string | null; name: string; role: string; micOn: boolean; joinedAt: string }>>();
+
+/** Retire un participant d'un appel et notifie la room. */
+function removeCallParticipant(streamId: string, socketId: string) {
+  const roomName = `live:${streamId}`;
+  const entry = liveCalls.get(roomName);
+  if (!entry?.has(socketId)) return;
+  const removed = entry.get(socketId)!;
+  entry.delete(socketId);
+  if (entry.size === 0) liveCalls.delete(roomName);
+  io.to(roomName).emit('live:call:participant-left', { streamId, socketId });
+  io.to(roomName).emit('live:call:participants:update', {
+    streamId,
+    count: entry.size,
+    participants: [...entry.values()],
+  });
+  console.log(`[WS] Call ${streamId}: ${removed.name} left (${entry.size} restants)`);
+}
+
+function getLiveViewerCount(roomName: string) {
+  return [...(liveViewers.get(roomName) ?? [])].filter((socketId) => {
+    const role = connectedUsers.get(socketId)?.role;
+    return role !== 'ADMIN' && role !== 'SUPER_ADMIN';
+  }).length;
+}
 
 // ============================================
-// AUTHENTICATION MIDDLEWARE
+// AUTHENTICATION MIDDLEWARE - SEC-003
 // ============================================
-io.use((socket, next) => {
-  const token = socket.handshake.auth.token || socket.handshake.query.token;
-  
-  // In production, verify JWT token here
-  // For demo, accept all connections with a user ID
-  const userId = socket.handshake.auth.userId || socket.handshake.query.userId || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  socket.data.userId = userId;
-  socket.data.userName = socket.handshake.auth.name || socket.handshake.query.name || `Utilisateur`;
-  socket.data.userRole = socket.handshake.auth.role || socket.handshake.query.role || 'MEMBER';
-  
-  next();
+// Configuration for Next.js API endpoint
+const NEXTJS_API_URL = process.env.NEXTJS_API_URL || 'http://localhost:3000';
+
+io.use(async (socket, next) => {
+  try {
+    // Get token from cookie or handshake
+    // NB : un cookie présent mais vide compte comme ABSENT (invité).
+    const rawToken = socket.handshake.auth.token || 
+                 socket.handshake.query.token ||
+                 socket.handshake.headers.cookie?.split(';').find(c => c.trim().startsWith('archedamour_session='))?.split('=')[1] ||
+                 '';
+    const token = rawToken.trim() ? rawToken : undefined;
+    
+    // Invités autorisés : la page /live publique doit pouvoir recevoir le
+    // direct sans compte (le chat et les rooms personnalisées restent
+    // réservés aux utilisateurs authentifiés plus bas).
+    if (!token) {
+      socket.data.userId = null;
+      socket.data.userName = 'Invité';
+      socket.data.userRole = 'GUEST';
+      socket.data.userEmail = null;
+      console.log(`[WS] Guest connection: ${socket.id}`);
+      return next();
+    }
+
+    // Validate token with Next.js API - SEC-003
+    const validationResponse = await fetch(`${NEXTJS_API_URL}/api/auth/validate-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    if (!validationResponse.ok) {
+      const errorData = await validationResponse.json();
+      console.warn(`[WS] Connection rejected: Invalid token (socket: ${socket.id}, error: ${errorData.message || 'Unknown'})`);
+      return next(new Error(errorData.message || 'Token invalide'));
+    }
+
+    const validationData = await validationResponse.json();
+    
+    if (!validationData.valid) {
+      console.warn(`[WS] Connection rejected: Token validation failed (socket: ${socket.id}, error: ${validationData.error || 'Unknown'})`);
+      return next(new Error(validationData.message || 'Validation échouée'));
+    }
+
+    // Set user data from validated token
+    const user = validationData.user;
+    socket.data.userId = user.id;
+    socket.data.userName = user.name || 'Utilisateur';
+    socket.data.userRole = user.role || 'MEMBER';
+    socket.data.userEmail = user.email;
+    
+    console.log(`[WS] User authenticated: ${socket.id} (${user.name || 'Unknown'} - ${user.role || 'MEMBER'})`);
+    
+    next();
+  } catch (error) {
+    console.error(`[WS] Authentication error for socket ${socket.id}:`, error);
+    return next(new Error('Erreur d\'authentification'));
+  }
 });
 
 // ============================================
@@ -68,6 +158,7 @@ io.use((socket, next) => {
 // ============================================
 io.on('connection', (socket) => {
   console.log(`[WS] User connected: ${socket.id} (${socket.data.userName})`);
+  const isGuest = socket.data.userRole === 'GUEST';
   
   // Store user info
   connectedUsers.set(socket.id, {
@@ -76,8 +167,12 @@ io.on('connection', (socket) => {
     role: socket.data.userRole,
   });
   
-  // Join user to their personal channel
-  socket.join(`user:${socket.data.userId}`);
+  // Les invités ne rejoignent pas de canal personnel ni le comptage global
+  // (ils restent libres de rejoindre une room live en lecture).
+  if (!isGuest) {
+    // Join user to their personal channel
+    socket.join(`user:${socket.data.userId}`);
+  }
   
   // Send welcome message
   socket.emit('connected', {
@@ -128,6 +223,121 @@ io.on('connection', (socket) => {
   });
 
   // ============================================
+  // GROUP CHAT CHANNEL
+  // ============================================
+
+  /**
+   * Check if user is a member of a group - SEC-010
+   */
+  async function isGroupMember(userId: string, groupId: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${NEXTJS_API_URL}/api/groupes/${groupId}/members/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error(`[WS] Error checking group membership:`, error);
+      return false;
+    }
+  }
+
+  socket.on('group:join', async (groupId: string) => {
+    if (!groupId) return;
+    
+    // Check if user is a member of the group - SEC-010
+    const isMember = await isGroupMember(socket.data.userId, groupId);
+    if (!isMember) {
+      console.warn(`[WS] ${socket.data.userName} (${socket.data.userId}) attempted to join group ${groupId} without permission`);
+      socket.emit('group:error', { 
+        groupId, 
+        message: 'Vous n\'êtes pas membre de ce groupe' 
+      });
+      return;
+    }
+    
+    const roomName = `group:${groupId}`;
+    socket.join(roomName);
+    socket.emit('group:joined', { groupId, timestamp: new Date().toISOString() });
+    console.log(`[WS] ${socket.data.userName} joined group ${groupId}`);
+  });
+
+  socket.on('group:leave', (groupId: string) => {
+    if (!groupId) return;
+    socket.leave(`group:${groupId}`);
+  });
+
+  // Diffusion d'un message de groupe avec persistance en base de données - WS-004
+  socket.on('group:message', async (data: { groupId: string; message: string; persisted?: unknown }) => {
+    const { groupId, message, persisted } = data;
+    if (!groupId || !message || !message.trim() || message.length > 2000) return;
+
+    // Check if user is a member of the group - SEC-010
+    const isMember = await isGroupMember(socket.data.userId, groupId);
+    if (!isMember) {
+      console.warn(`[WS] ${socket.data.userName} (${socket.data.userId}) attempted to send message to group ${groupId} without permission`);
+      socket.emit('group:error', { 
+        groupId, 
+        message: 'Vous n\'êtes pas autorisé à envoyer des messages dans ce groupe' 
+      });
+      return;
+    }
+
+    let chatMessage;
+    
+    // Si le message a déjà été persisté par l'API (cas où le frontend appelle directement l'API)
+    if (persisted && typeof persisted === 'object') {
+      chatMessage = persisted;
+    } else {
+      // Sinon, on persiste le message via l'API Next.js - WS-004
+      try {
+        const persistResponse = await fetch(`${NEXTJS_API_URL}/api/groupes/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `archedamour_session=${socket.handshake.auth.token || socket.handshake.query.token}`,
+          },
+          body: JSON.stringify({
+            groupId,
+            content: message.trim(),
+          }),
+        });
+
+        if (persistResponse.ok) {
+          const persistedData = await persistResponse.json();
+          chatMessage = persistedData.message;
+          console.log(`[WS] Message persisted to DB: ${chatMessage.id}`);
+        } else {
+          // Fallback: créer un message temporaire si la persistance échoue
+          console.error(`[WS] Failed to persist message to DB, using fallback`);
+          chatMessage = {
+            id: `ws_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            userId: socket.data.userId,
+            userName: socket.data.userName,
+            message: message.trim(),
+            timestamp: new Date().toISOString(),
+          };
+        }
+      } catch (error) {
+        // Fallback en cas d'erreur réseau
+        console.error(`[WS] Error persisting message to DB:`, error);
+        chatMessage = {
+          id: `ws_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          userId: socket.data.userId,
+          userName: socket.data.userName,
+          message: message.trim(),
+          timestamp: new Date().toISOString(),
+        };
+      }
+    }
+
+    socket.to(`group:${groupId}`).emit('group:message', chatMessage);
+  });
+
+  // ============================================
   // LIVE STREAMING CHANNEL
   // ============================================
 
@@ -142,7 +352,7 @@ io.on('connection', (socket) => {
     }
     liveViewers.get(roomName)!.add(socket.id);
     
-    const viewerCount = liveViewers.get(roomName)!.size;
+    const viewerCount = getLiveViewerCount(roomName);
     
     console.log(`[WS] ${socket.data.userName} joined live stream ${streamId}. Viewers: ${viewerCount}`);
     
@@ -165,6 +375,83 @@ io.on('connection', (socket) => {
       viewerCount,
       timestamp: new Date().toISOString(),
     });
+    socket.to(roomName).emit('live:peer-joined', {
+      streamId,
+      peerId: socket.id,
+      role: socket.data.userRole,
+    });
+  });
+
+  // ============================================
+  // AUDIO CALL MODE (appel à deux sens)
+  // ============================================
+  // Pour un direct AUDIO, chaque participant publie son micro : le service
+  // maintient l'annuaire des participants pour permettre le maillage WebRTC
+  // (mesh full-mesh, parfait pour des dizaines de participants).
+
+  socket.on('live:call:join', (data: { streamId: string; displayName?: string }) => {
+    const streamId = data?.streamId;
+    if (!streamId) return;
+    const roomName = `live:${streamId}`;
+    socket.join(roomName);
+
+    const participant = {
+      socketId: socket.id,
+      userId: socket.data.userId,
+      name: (data.displayName || socket.data.userName) as string,
+      role: (socket.data.userRole ?? 'MEMBER') as string,
+      micOn: true,
+      joinedAt: new Date().toISOString(),
+    };
+    const entry = liveCalls.get(roomName) ?? new Map();
+    entry.set(socket.id, participant);
+    liveCalls.set(roomName, entry);
+
+    // Le nouvel arrivant reçoit la liste des participants déjà présents
+    // (pour créer les peers vers eux) — sans lui-même.
+    const others = [...entry.values()].filter((p) => p.socketId !== socket.id);
+    socket.emit('live:call:participants', { streamId, participants: others });
+
+    // Les autres sont informés du nouvel arrivant (pour créer le peer).
+    socket.to(roomName).emit('live:call:participant-joined', participant);
+    io.to(roomName).emit('live:call:participants:update', {
+      streamId,
+      count: entry.size,
+      participants: [...entry.values()],
+    });
+    console.log(`[WS] Call ${streamId}: ${participant.name} joined (${entry.size} participants)`);
+  });
+
+  // État du micro d'un participant (couper/réactiver).
+  socket.on('live:call:mic', (data: { streamId: string; micOn: boolean }) => {
+    if (!data?.streamId) return;
+    const roomName = `live:${data.streamId}`;
+    const entry = liveCalls.get(roomName);
+    if (!entry?.has(socket.id)) return;
+    entry.get(socket.id)!.micOn = Boolean(data.micOn);
+    io.to(roomName).emit('live:call:mic-update', {
+      streamId: data.streamId,
+      socketId: socket.id,
+      micOn: Boolean(data.micOn),
+    });
+  });
+
+  socket.on('live:call:leave', (data: { streamId: string }) => {
+    const streamId = data?.streamId;
+    if (!streamId) return;
+    removeCallParticipant(streamId, socket.id);
+  });
+
+  // Handshake audio : relayage des SDP/ICE entre participants (ciblé).
+  socket.on('live:signal', (data: { streamId: string; targetId: string; signal: unknown }) => {
+    if (!data?.streamId || !data?.targetId || !data.signal) return;
+    io.to(data.targetId).emit('live:signal', {
+      streamId: data.streamId,
+      senderId: socket.id,
+      senderName: socket.data.userName,
+      senderRole: socket.data.userRole,
+      signal: data.signal,
+    });
   });
 
   // Leave live stream
@@ -174,7 +461,7 @@ io.on('connection', (socket) => {
     
     if (liveViewers.has(roomName)) {
       liveViewers.get(roomName)!.delete(socket.id);
-      const viewerCount = liveViewers.get(roomName)!.size;
+      const viewerCount = getLiveViewerCount(roomName);
       
       io.to(roomName).emit('live:viewers:update', {
         streamId,
@@ -193,6 +480,11 @@ io.on('connection', (socket) => {
 
   // Chat message in live stream
   socket.on('chat:message', (data: { streamId: string; message: string }) => {
+    // Le chat reste réservé aux utilisateurs connectés.
+    if (socket.data.userRole === 'GUEST') {
+      socket.emit('chat:error', { error: 'Connectez-vous pour participer au chat' });
+      return;
+    }
     const { streamId, message } = data;
     const roomName = `live:${streamId}`;
     
@@ -280,7 +572,30 @@ io.on('connection', (socket) => {
         info: data.info,
         updatedAt: new Date().toISOString(),
       });
+      io.emit('live:status', {
+        streamId: data.streamId,
+        status: data.status,
+        info: data.info,
+        updatedAt: new Date().toISOString(),
+      });
+      // Notification « un direct démarre » à TOUS les clients connectés
+      // (membres + invités) — affichée en toast par le hook client.
+      if (data.status === 'LIVE') {
+        io.emit('live:started', {
+          streamId: data.streamId,
+          title: data.info?.title ?? 'Un direct',
+          mediaType: data.info?.mediaType ?? 'VIDEO',
+          startedAt: new Date().toISOString(),
+        });
+      }
       console.log(`[WS] Live stream ${data.streamId} status changed to: ${data.status}`);
+    }
+  });
+
+  // Ping de mesure de latence (badge qualité réseau du Live Studio).
+  socket.on('live:ping', (ack?: (data: { pong: boolean; timestamp: string }) => void) => {
+    if (typeof ack === 'function') {
+      ack({ pong: true, timestamp: new Date().toISOString() });
     }
   });
 
@@ -309,13 +624,14 @@ io.on('connection', (socket) => {
   // ============================================
   socket.on('disconnect', (reason) => {
     console.log(`[WS] User disconnected: ${socket.id} (${socket.data.userName}) - Reason: ${reason}`);
+    connectedUsers.delete(socket.id);
     
     // Clean up from all live streams
     for (const [roomName, viewers] of liveViewers.entries()) {
       if (viewers.has(socket.id)) {
         viewers.delete(socket.id);
         const streamId = roomName.replace('live:', '');
-        const viewerCount = viewers.size;
+        const viewerCount = getLiveViewerCount(roomName);
         
         io.to(roomName).emit('live:viewers:update', {
           streamId,
@@ -323,9 +639,13 @@ io.on('connection', (socket) => {
         });
       }
     }
-    
-    // Remove from connected users
-    connectedUsers.delete(socket.id);
+
+    // Clean up from all audio calls
+    for (const roomName of liveCalls.keys()) {
+      if (liveCalls.get(roomName)?.has(socket.id)) {
+        removeCallParticipant(roomName.replace('live:', ''), socket.id);
+      }
+    }
     
     // Broadcast updated user count
     broadcastUserCount();

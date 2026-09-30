@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/no-motion';
 import {
   Heart,
   Plus,
@@ -214,7 +214,7 @@ const categoryColors: Record<PrayerCategory, string> = {
 
 const visibilityConfig: Record<PrayerVisibility, { icon: React.ElementType; color: string; description: string }> = {
   'Privée': { icon: Lock, color: 'bg-gray-100 text-gray-600', description: 'Visible seulement par moi' },
-  'Pastorale': { icon: Eye, color: 'bg-blue-100 text-blue-600', description: 'Visible par les pasteurs' },
+  'Pastorale': { icon: Eye, color: 'bg-blue-100 text-blue-600', description: 'Visible par lepasteur' },
   'Communautaire': { icon: Users, color: 'bg-green-100 text-green-600', description: 'Visible par les membres' },
 };
 

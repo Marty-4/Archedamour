@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from '@/lib/no-motion';
 import {
   Clock,
   MapPin,
@@ -182,7 +182,7 @@ export default function ServicesPage() {
               title="Nos Cultes"
               description="Découvrez nos différents moments de rassemblement et trouvez celui qui vous convient."
               breadcrumbs={[{ label: "Cultes" }]}
-              className="text-white [&_h1]:text-white [&_p]:text-white/80 [&_li]:text-white/60 [&_a]:text-white hover:[&_a]:text-white"
+              className="text-slate-900 dark:text-white [&_h1]:text-slate-900 dark:[&_h1]:text-white [&_p]:text-slate-700 dark:[&_p]:text-white/80 [&_li]:text-slate-700 dark:[&_li]:text-white/60 [&_a]:text-slate-900 dark:[&_a]:text-white hover:[&_a]:text-sky-400"
               actions={
                 <Button size="lg" asChild className="bg-white text-violet-700 hover:bg-white/90 rounded-xl shadow-lg hidden sm:flex">
                   <Link href="/live">

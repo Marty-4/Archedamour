@@ -1,12 +1,12 @@
-// ChurchConnect - Comprehensive Church Management Platform
-// Prisma Schema (SQLite compatible, PostgreSQL-ready)
+// Arche d'amour - Comprehensive Church Management Platform
+// Prisma Schema (PostgreSQL / Supabase)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -110,10 +110,16 @@ enum MarriageStatus {
 }
 
 enum StreamPlatform {
+  INTERNAL
   YOUTUBE
   FACEBOOK
   RTMP
   OTHER
+}
+
+enum LiveMediaType {
+  VIDEO
+  AUDIO
 }
 
 enum StreamStatus {
@@ -226,45 +232,52 @@ enum EventStatus {
 // ==================== USER & AUTHENTICATION ====================
 
 model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
+  id            String         @id @default(cuid())
+  email         String         @unique
   name          String?
   password      String
   avatar        String?
-  emailVerified Boolean    @default(false)
-  role          Role       @default(MEMBER)
-  status        UserStatus @default(ACTIVE)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  emailVerified Boolean        @default(false)
+  role          Role           @default(MEMBER)
+  status        UserStatus     @default(ACTIVE)
+  failedAttempts Int            @default(0)
+  lockoutUntil  DateTime?
+  resetToken    String?
+  resetTokenExpiresAt DateTime?
+  refreshToken  String?
+  refreshTokenExpiresAt DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
-  // Relations
-  sessions           Session[]
-  memberProfiles     MemberProfile[]
-  prayerRequests     PrayerRequest[]
+  sessions          Session[]
+  memberProfile     MemberProfile?
+  prayerRequests    PrayerRequest[]
   prayerInteractions PrayerInteraction[]
-  donations          Donation[]
-  posts              Post[]
-  comments           Comment[]
-  likes              Like[]
-  reports            Report[]        @relation("ReportAuthor")
-  reportedAs         Report[]        @relation("ReportTarget")
-  enrollments        Enrollment[]
-  notifications      Notification[]
-  groupMemberships   GroupMember[]
-  groupsLed          Group[]         @relation("GroupLeader")
-  conversions        Conversion[]     @relation("ConversionAssignee")
-  pastoralFollowUps  PastoralFollowUp[]
-  baptisms           Baptism[]       @relation("BaptismCandidate")
-  baptismsOfficiated Baptism[]       @relation("BaptismOfficiant")
-  marriagesAsSpouse1 Marriage[]      @relation("MarriageSpouse1")
-  marriagesAsSpouse2 Marriage[]      @relation("MarriageSpouse2")
-  marriagesOfficiated Marriage[]     @relation("MarriageOfficiant")
-  sermonsPreached    Sermon[]
-  servicesPreached   Service[]       @relation("ServicePreacher")
-  eventsOrganized    Event[]
+  donations         Donation[]
+  posts             Post[]
+  comments          Comment[]
+  likes             Like[]
+  reports           Report[] @relation("ReportAuthor")
+  reportedAs        Report[] @relation("ReportTarget")
+  enrollments       Enrollment[]
+  notifications     Notification[]
+  groupMemberships  GroupMember[]
+  groupsLed         Group[] @relation("GroupLeader")
+  conversions       Conversion[] @relation("ConversionAssignee")
+  pastoralFollowUps PastoralFollowUp[]
+  baptisms          Baptism[] @relation("BaptismCandidate")
+  baptismsOfficiated Baptism[] @relation("BaptismOfficiant")
+  marriagesAsSpouse1 Marriage[] @relation("MarriageSpouse1")
+  marriagesAsSpouse2 Marriage[] @relation("MarriageSpouse2")
+  marriagesOfficiated Marriage[] @relation("MarriageOfficiant")
+  sermonsPreached   Sermon[]
+  sermonsRecorded   Sermon[] @relation("SermonRecordedBy")
+  servicesPreached  Service[] @relation("ServicePreacher")
+  eventsOrganized   Event[]
   eventRegistrations EventRegistration[] @relation("EventRegistrant")
-  coursesInstructed  Course[]        @relation("CourseInstructor")
-  departmentsHeaded  Department[]     @relation("DepartmentHead")
+  coursesInstructed Course[] @relation("CourseInstructor")
+  departmentsHeaded Department[] @relation("DepartmentHead")
+  groupMessages     GroupMessage[] @relation("GroupMessages")
 
   @@map("users")
 }
@@ -362,6 +375,7 @@ model Group {
   church  Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
   leader  User?           @relation("GroupLeader", fields: [leaderId], references: [id])
   members GroupMember[]
+  messages GroupMessage[]
   groupMemberProfiles MemberProfile[] @relation("GroupMembers")
 
   @@index([churchId])
@@ -386,11 +400,28 @@ model GroupMember {
   @@map("group_members")
 }
 
+model GroupMessage {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation("GroupMessages", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
+  @@index([userId])
+  @@map("group_messages")
+}
+
 // ==================== MEMBERS & PROFILES ====================
 
 model MemberProfile {
-  id             String             @id @default(cuid())
-  userId         String             @unique
+  id             String              @id @default(cuid())
+  userId         String              @unique
   churchId       String
   firstName      String
   lastName       String
@@ -405,12 +436,11 @@ model MemberProfile {
   departmentId   String?
   groupId        String?
   bio            String?
-  notes          String?            // Pastoral notes - protected
+  notes          String?
   status         MemberProfileStatus @default(ACTIVE)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
-  // Relations
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   church     Church      @relation(fields: [churchId], references: [id], onDelete: Cascade)
   department Department? @relation(fields: [departmentId], references: [id])
@@ -422,7 +452,6 @@ model MemberProfile {
   @@index([groupId])
   @@map("member_profiles")
 }
-
 // ==================== SERVICES & EVENTS ====================
 
 model Service {
@@ -518,12 +547,17 @@ model Sermon {
   duration        Int?        // in minutes
   type            SermonType  @default(TEXT)
   downloadsAllowed Boolean    @default(true)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Enregistrement in-app : utilisateur ayant capturé l'audio (null = fichier
+  // téléversé par un tiers).
+  recordedById String?
 
   // Relations
   church    Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
   preacher  User            @relation(fields: [preacherId], references: [id])
+  recordedBy User?          @relation("SermonRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
   category  SermonCategory? @relation(fields: [categoryId], references: [id])
   series    SermonSeries?   @relation(fields: [seriesId], references: [id])
 
@@ -814,7 +848,8 @@ model LiveStream {
   title         String
   description   String?
   thumbnail     String?
-  platform      StreamPlatform @default(YOUTUBE)
+  platform      StreamPlatform @default(INTERNAL)
+  mediaType     LiveMediaType  @default(VIDEO)
   streamKey     String?
   streamUrl     String?
   status        StreamStatus   @default(SCHEDULED)
@@ -917,10 +952,12 @@ model Report {
   updatedAt   DateTime        @updatedAt
 
   // Relations
+  // Note : 3 FK sur la même colonne targetId → noms de contraintes distincts
+  // obligatoires en PostgreSQL (map requis).
   reporter User      @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: Cascade)
-  target   User      @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Cascade)
-  post     Post?     @relation("PostReports", fields: [targetId], references: [id], onDelete: Cascade)
-  comment  Comment?  @relation("CommentReports", fields: [targetId], references: [id], onDelete: Cascade)
+  target   User      @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Cascade, map: "reports_target_user_fkey")
+  post     Post?     @relation("PostReports", fields: [targetId], references: [id], onDelete: Cascade, map: "reports_target_post_fkey")
+  comment  Comment?  @relation("CommentReports", fields: [targetId], references: [id], onDelete: Cascade, map: "reports_target_comment_fkey")
 
   @@index([reporterId])
   @@index([targetType])

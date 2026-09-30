@@ -1,6 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# ============================================
+# DEPENDENCIES
+# ============================================
 node_modules
 /.pnp
 .pnp.*
@@ -9,46 +11,132 @@ node_modules
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+bun.lock
 
-# testing
-/coverage
-
-# next.js
+# ============================================
+# BUILD OUTPUT
+# ============================================
+# Next.js
 /.next/
 /out/
 
-# production
+# Production build
 /build
+/dist
 
-# misc
+# ============================================
+# ENVIRONMENT FILES
+# ============================================
+# Never commit environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# ============================================
+# IDE & EDITOR
+# ============================================
 .DS_Store
-*.pem
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
-# debug
+# ============================================
+# OS
+# ============================================
+Thumbs.db
+
+# ============================================
+# LOGS
+# ============================================
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+server.log
+dev.log
+dev.out.log
 
-# env files (can opt-in for committing if needed)
-.env*
+# ============================================
+# TESTING
+# ============================================
+/coverage
+/nyc_output
 
-# vercel
-.vercel
-
-
-# typescript
+# ============================================
+# TYPESCRIPT
+# ============================================
 *.tsbuildinfo
 next-env.d.ts
+
+# ============================================
+# LOCAL FILES
+# ============================================
 local-*
 .claude
 .z-ai-config
-*.log
-dev.log
-dev.out.log
-test
-prompt
 
-server.log
-# Skills directory
+# ============================================
+# VERCEL
+# ============================================
+.vercel
+
+# ============================================
+# SUPABASE
+# ============================================
+# Export de migration Supabase (contient des donnees sensibles)
+scripts/supabase-export/
+
+# ============================================
+# DATABASE
+# ============================================
+*.db
+*.sqlite
+*.sqlite-journal
+
+# ============================================
+# CERTIFICATES
+# ============================================
+*.pem
+*.key
+*.crt
+*.cert
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+tmp/
+temp/
+*.tmp
+
+# ============================================
+# SKILLS
+# ============================================
 /skills/
+
+# ============================================
+# PWA
+# ============================================
+# Service worker cache
+.workbox-*/
+
+# ============================================
+# DOCKER
+# ============================================
+docker-compose.override.yml
+
+# ============================================
+# GIT
+# ============================================
+# Ignore all files in .freebuff (temporary files)
+.freebuff/
+
+# ============================================
+# DOCUMENTATION TEMPORARY
+# ============================================
+3443

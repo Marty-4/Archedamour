@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { MainNav } from "@/components/navigation/main-nav";
 import {
   MapPin,
@@ -57,13 +58,13 @@ interface PublicLayoutProps {
 
 export function PublicLayout({ children, className }: PublicLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-sky-50 dark:bg-slate-950">
       {/* Header / Navigation */}
       <MainNav />
 
       {/* Main content area - with top padding for fixed header */}
-      <main className="flex-1 pt-16 lg:pt-20">
-        <div className={className}>{children}</div>
+      <main className={`flex-1 pt-16 lg:pt-20 bg-sky-50 dark:bg-slate-950 ${className ?? ""}`}>
+        <div>{children}</div>
       </main>
 
       {/* Footer */}
@@ -105,10 +106,14 @@ export function PublicLayout({ children, className }: PublicLayoutProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
             {/* Brand column */}
             <div className="lg:col-span-2 space-y-4">
-              <Link href="/" className="flex items-center gap-2 group">
-                <div className="w-10 h-10 rounded-xl gradient-spiritual flex items-center justify-center shadow-md">
-                  <span className="text-white font-serif font-bold text-lg">C</span>
-                </div>
+              <Link href="/" className="flex items-center gap-3 group">
+                <Image
+                  src="/icons/LogoArche.jpg"
+                  alt="Arche d'Amour"
+                  width={40}
+                  height={40}
+                  className="rounded-xl shadow-md object-cover"
+                />
                 <span className="font-serif text-xl font-semibold">
                   Arche d'<span className="text-primary">Amour</span>
                 </span>

@@ -21,3 +21,15 @@
 		}
 	}
 }
+
+:8443 {
+	 tls internal
+
+	 handle /socket.io/* {
+		 reverse_proxy localhost:3001
+	 }
+
+	 handle {
+		 reverse_proxy localhost:3000
+	 }
+}

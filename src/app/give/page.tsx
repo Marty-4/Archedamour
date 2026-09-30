@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/no-motion';
 import {
   Heart,
   CreditCard,
@@ -190,7 +190,7 @@ export default function GivePage() {
               title="Soutenir l'Œuvre de Dieu"
               description="Vos dons permettent à notre église de poursuivre sa mission et de porter l'Évangile aux quatre coins du monde."
               breadcrumbs={[{ label: "Donner" }]}
-              className="text-white [&_h1]:text-white [&_p]:text-white/80 [&_li]:text-white/60 [&_a]:text-white hover:[&_a]:text-white"
+              className="text-slate-900 dark:text-white [&_h1]:text-slate-900 dark:[&_h1]:text-white [&_p]:text-slate-700 dark:[&_p]:text-white/80 [&_li]:text-slate-700 dark:[&_li]:text-white/60 [&_a]:text-slate-900 dark:[&_a]:text-white hover:[&_a]:text-sky-400"
             />
 
             {/* Bible verse */}
@@ -389,7 +389,7 @@ export default function GivePage() {
                             >
                               <Repeat className="w-5 h-5 mb-2 text-primary" />
                               <p className="font-semibold">Don mensuel</p>
-                              <p class="text-xs text-muted-foreground mt-1">Chaque mois automatiquement</p>
+                              <p className="text-xs text-muted-foreground mt-1">Chaque mois automatiquement</p>
                             </button>
                           </div>
                         </div>

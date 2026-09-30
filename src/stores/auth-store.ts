@@ -42,7 +42,7 @@ export interface RegisterData {
   phone?: string;
   password: string;
   confirmPassword: string;
-  acceptTerms: boolean;
+  acceptTerms?: boolean;
 }
 
 // API response types

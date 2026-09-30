@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from '@/lib/no-motion';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -83,7 +83,7 @@ const allEvents: Event[] = [
     address: "Boulevard Lumumba, Kinshasa",
     category: "Retraite",
     organizer: {
-      name: "Pasteur Jean-Marc Lumbu",
+      name: "Pasteur Lesty Paka",
       role: "Pasteur Principal",
       initials: "JL",
     },
@@ -168,7 +168,7 @@ const allEvents: Event[] = [
     address: "Boulevard Lumumba, Kinshasa",
     category: "Formation",
     organizer: {
-      name: "Pasteur Emmanuel Kamba",
+      name: "Frère Armèle",
       role: "Pasteur Associé",
       initials: "EK",
     },
@@ -193,6 +193,7 @@ const allEvents: Event[] = [
       role: "Département Prière",
       initials: "EI",
     },
+    registeredCount: 0,
     isUpcoming: true,
     status: "open",
   },
@@ -445,7 +446,7 @@ export default function EventsPage() {
               title="Événements"
               description="Découvrez et participez aux activités de notre communauté. Retrouvez tous les événements à venir."
               breadcrumbs={[{ label: "Événements" }]}
-              className="text-white [&_h1]:text-white [&_p]:text-white/80 [&_li]:text-white/60 [&_a]:text-white hover:[&_a]:text-white"
+              className="text-slate-900 dark:text-white [&_h1]:text-slate-900 dark:[&_h1]:text-white [&_p]:text-slate-700 dark:[&_p]:text-white/80 [&_li]:text-slate-700 dark:[&_li]:text-white/60 [&_a]:text-slate-900 dark:[&_a]:text-white hover:[&_a]:text-sky-400"
             />
 
             {/* Stats */}

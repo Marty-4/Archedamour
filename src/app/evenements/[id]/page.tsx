@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion } from '@/lib/no-motion';
 import {
   Calendar,
   Clock,
@@ -77,7 +77,7 @@ Le centre de retraite offre des chambres confortables, des repas préparés sur 
     address: "Route de Fontainebleau, 77300 Fontainebleau",
     category: "Retraite",
     organizer: {
-      name: "Pasteur Marc Dupont",
+      name: "Pasteur Lesty Paka",
       role: "Pasteur Principal",
       avatar: null,
       initials: "MD",
@@ -263,7 +263,7 @@ export default function EventDetailPage() {
                       {event.endDate && (
                         <div className="flex items-center text-white">
                           <span className="text-sm">→</span>
-                          <div class="bg-white rounded-lg p-3 shadow-md text-center min-w-[80px] ml-1">
+                          <div className="bg-white rounded-lg p-3 shadow-md text-center min-w-[80px] ml-1">
                             <p className="text-xs font-medium text-muted-foreground uppercase">
                               {new Date(event.endDate).toLocaleDateString("fr-FR", { month: "short" })}
                             </p>

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 // Status badge variants
-type StatusVariant =
+export type StatusVariant =
   | "active"
   | "inactive"
   | "pending"

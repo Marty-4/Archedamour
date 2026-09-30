@@ -328,7 +328,7 @@ export class YouTubeClient {
         concurrentViewers: liveDetails.concurrentViewers 
           ? parseInt(liveDetails.concurrentViewers) 
           : undefined,
-        activeChatId: liveDetails.activeLiveChatId,
+        activeLiveChatId: liveDetails.activeLiveChatId,
       } : undefined,
     };
   }

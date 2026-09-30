@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from '@/lib/no-motion';
 import {
   Search,
   SlidersHorizontal,
@@ -30,7 +30,7 @@ const allSermons = [
   {
     id: 1,
     title: "La Puissance de la Prière Persistante",
-    preacher: "Pasteur Marc Dupont",
+    preacher: "Berger Lesty Paka",
     category: "Foi",
     series: "Vaincre par la prière",
     date: "11 Août 2025",
@@ -42,7 +42,7 @@ const allSermons = [
   {
     id: 2,
     title: "Marcher par la Foi et non par la Vue",
-    preacher: "Pasteur Sophie Martin",
+    preacher: " Berger Lesty Paka",
     category: "Confiance",
     series: "La vie de foi",
     date: "4 Août 2025",
@@ -54,7 +54,7 @@ const allSermons = [
   {
     id: 3,
     title: "L'Amour qui Transforme",
-    preacher: "Pasteur Jean-Pierre Laurent",
+    preacher: "Frère Armèle",
     category: "Amour",
     series: "Fruits de l'Esprit",
     date: "28 Juillet 2025",
@@ -66,7 +66,7 @@ const allSermons = [
   {
     id: 4,
     title: "Trouver le Repos en Dieu",
-    preacher: "Pasteur Marc Dupont",
+    preacher: "Berger Lesty paka",
     category: "Paix",
     series: "Le repos de l'âme",
     date: "21 Juût 2025",
@@ -90,7 +90,7 @@ const allSermons = [
   {
     id: 6,
     title: "Vivre dans l'Espérance",
-    preacher: "Pasteur Sophie Martin",
+    preacher: "Frère prince",
     category: "Espérance",
     series: "Les vertus chrétiennes",
     date: "7 Juillet 2025",
@@ -102,7 +102,7 @@ const allSermons = [
   {
     id: 7,
     title: "L'Importance de la Communauté",
-    preacher: "Pasteur Marc Dupont",
+    preacher: "Berger Lesty Paka",
     category: "Communauté",
     series: "Ensemble pour avancer",
     date: "30 Juin 2025",
@@ -114,7 +114,7 @@ const allSermons = [
   {
     id: 8,
     title: "La Sagesse d'En Haut",
-    preacher: "Pasteur Jean-Pierre Laurent",
+    preacher: "Papa Celestin",
     category: "Sagesse",
     series: "Marcher dans la sagesse",
     date: "23 Juin 2025",
@@ -126,7 +126,7 @@ const allSermons = [
   {
     id: 9,
     title: "Le Courage d'être Fidèle",
-    preacher: "Pasteur Sophie Martin",
+    preacher: "Frère prince",
     category: "Fidélité",
     series: "Héros de la foi",
     date: "16 Juin 2025",
@@ -197,7 +197,7 @@ export default function SermonsPage() {
               title="Nos Prédications"
               description="Retrouvez tous nos enseignements pour nourrir votre vie spirituelle au quotidien."
               breadcrumbs={[{ label: "Prédications" }]}
-              className="text-white [&_h1]:text-white [&_p]:text-white/80 [&_li]:text-white/60 [&_a]:text-white hover:[&_a]:text-white"
+              className="text-slate-900 dark:text-white [&_h1]:text-slate-900 dark:[&_h1]:text-white [&_p]:text-slate-700 dark:[&_p]:text-white/80 [&_li]:text-slate-700 dark:[&_li]:text-white/60 [&_a]:text-slate-900 dark:[&_a]:text-white hover:[&_a]:text-sky-400"
             />
           </motion.div>
         </div>

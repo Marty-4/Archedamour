@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcryptjs';
+import { hashPassword } from '../src/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -12,8 +12,8 @@ const DEMO_USERS = [
     role: 'PASTOR',
   },
   {
-    email: 'admin@churchconnect.com',
-    name: 'Admin Marie Nseke',
+    email: 'admin@amour.com',
+    name: 'Admin Marty Ngouono',
     password: 'admin123',
     role: 'ADMIN',
   },
@@ -59,11 +59,8 @@ const DEPARTMENTS = [
 ];
 
 const GROUP_NAMES = [
-  'Groupe de Matonge', 'Groupe de Limeté', 'Groupe de Ngaliema',
-  'Groupe de la Victoire', 'Groupe de Bandalungwa', 'Groupe de la Grâce',
-  'Groupe des Jeunes Pros', 'Groupe des Couples', 'Groupe Universitaire',
-  'Groupe des Professionnels', 'Groupe de Kinshasa', 'Groupe de la Paix'
-];
+  'Groupe de Matonge'
+]
 
 const SERMON_TITLES = [
   'La Puissance de la Prière Persistante',
@@ -83,12 +80,11 @@ const SERMON_TITLES = [
 const SERMON_CATEGORIES = ['Foi', 'Vie Chrétienne', 'Amour', 'Prières', 'Victoire', 'Communauté', 'Pardon', 'Joie', 'Paix'];
 
 const PREACHERS = [
-  'Pasteur Jean-Marc Lumbu',
-  'Dr. Marie Nseke',
-  'Évangéliste Paul Kamba',
-  'Pasteur Étienne Malula',
-  'Dr. Claire Tshitengo',
-  'Ancien Jacques Kabongo'
+  'Berger Lesty Paka ',
+  'Frère Armèle ',
+  'Frère prince ',
+  'Papa Celestin '
+  
 ];
 
 const EVENT_TITLES = [
@@ -152,8 +148,7 @@ async function main() {
   await prisma.conversion.deleteMany();
   await prisma.donation.deleteMany();
   await prisma.prayerInteraction.deleteMany();
-  await prayerRequest.deleteMany();
-  await prisma.liveViewer.deleteMany();
+  await prisma.prayerRequest.deleteMany();
   await prisma.liveStream.deleteMany();
   await prisma.eventRegistration.deleteMany();
   await prisma.event.deleteMany();
@@ -189,7 +184,7 @@ async function main() {
   const createdUsers = [];
   
   for (const demoUser of DEMO_USERS) {
-    const hashedPassword = await hash(demoUser.password, 10);
+    const hashedPassword = hashPassword(demoUser.password);
     const user = await prisma.user.create({
       data: {
         email: demoUser.email,
@@ -235,7 +230,7 @@ async function main() {
       data: {
         email,
         name: `${firstName} ${lastName}`,
-        password: await hash('password123', 10),
+        password: hashPassword('password123'),
         role: 'MEMBER',
         status: randomItem(['ACTIVE', 'ACTIVE', 'ACTIVE', 'INACTIVE'] as any),
         emailVerified: Math.random() > 0.2,
@@ -369,10 +364,9 @@ async function main() {
         verse: `${randomItem(['Jean', 'Romains', 'Psaumes', 'Éphésiens', 'Philippiens'])} ${randomInt(1, 15)}:${randomInt(1, 28)}`,
         thumbnail: `/images/sermon-${i + 1}.jpg`,
         videoUrl: 'https://example.com/video.mp4',
-        duration: `${randomInt(25, 60)} min`,
+        duration: randomInt(25, 60),
         type: randomItem(['VIDEO', 'AUDIO'] as any),
         downloadsAllowed: true,
-        viewsCount: randomInt(50, 500),
       }
     });
   }
@@ -389,15 +383,16 @@ async function main() {
     await prisma.service.create({
       data: {
         churchId: church.id,
-        title: type === 'SUNDAN_SERVICE' ? 'Culte du Dimanche' :
+        title: type === 'SUNDAY_SERVICE' ? 'Culte du Dimanche' :
                type === 'WEEKDAY_PRAYER' ? 'Prière de Milieu de Semaine' :
                type === 'BIBLE_STUDY' ? 'Étude Biblique' :
                type === 'VIGIL' ? 'Veillée de Prière' : 'Conférence Spéciale',
         description: `Rejoignez-nous pour un moment de ${type === 'SUNDAY_SERVICE' ? 'célébration et adoration' : type === 'BIBLE_STUDY' ? 'étude approfondie de la Parole' : 'prière et communion'}.`,
         type,
         date,
-        startTime: type === 'SUNDAN_SERVICE' ? '07:00' : type === 'VIGIL' ? '22:00' : '18:00',
-        endTime: type === 'SUNDAN_SERVICE' ? '10:00' : type === 'VIGIL' ? '01:00' : '20:00',
+        startTime: date, // Champ DateTime requis : l'heure exacte est illustrative
+        endTime: date,
+        liveUrl: type === 'SUNDAY_SERVICE' ? 'https://youtube.com/live/example' : null,
         location: randomItem(['Temple Principal', 'Salle Pasteur', 'Parvis Extérieur', 'Centre Conférences']),
         preacherId: allUsers[randomInt(0, 5)].id,
         status: date < new Date() ? 'COMPLETED' : 'SCHEDULED',
@@ -424,7 +419,9 @@ async function main() {
         location: randomItem(['Temple Principal', 'Centre Conférences', 'Salle Pasteur', 'Extérieur']),
         organizerId: allUsers[randomInt(0, 9)].id,
         maxParticipants: randomInt(50, 500),
-        status: 'OPEN',
+        status: 'PUBLISHED',
+        startTime: date,
+        endTime: date,
         registrationDeadline: new Date(date.getTime() - 7 * 24 * 60 * 60 * 1000), // 1 week before
       }
     });
@@ -475,10 +472,25 @@ async function main() {
   }
   console.log(`   Created ${PRAYER_REQUESTS.length} prayer requests`);
 
+  // Create Donation Categories
+  console.log('\n🏷️ Creating donation categories...');
+  const donationCategoryTypes = ['TITHE', 'OFFERING', 'DONATION', 'MISSION', 'CONSTRUCTION', 'PROJECT', 'OTHER'] as const;
+  const createdDonationCategories = [];
+  for (const type of donationCategoryTypes) {
+    const donationCategory = await prisma.donationCategory.create({
+      data: {
+        churchId: church.id,
+        name: type === 'TITHE' ? 'Dîme' : type === 'OFFERING' ? 'Offrande' : type === 'DONATION' ? 'Don' : type === 'MISSION' ? 'Mission' : type === 'CONSTRUCTION' ? 'Construction' : type === 'PROJECT' ? 'Projet' : 'Autre',
+        type,
+      }
+    });
+    createdDonationCategories.push(donationCategory);
+  }
+  console.log(`   Created ${createdDonationCategories.length} donation categories`);
+
   // Create Donations
   console.log('\n💰 Creating donations...');
-  const donationCategories = ['DIME', 'OFFERING', 'DONATION', 'MISSION', 'CONSTRUCTION', 'PROJECT', 'OTHER'];
-  const methods = ['MOBILE_MONEY', 'CASH', 'BANK_TRANSFER', 'CARD'];
+  const methods = ['mobile_money', 'cash', 'bank_transfer', 'card'];
   
   for (let i = 0; i < 80; i++) {
     const amount = randomItem([5000, 10000, 20000, 50000, 100000, 200000]);
@@ -486,9 +498,9 @@ async function main() {
       data: {
         userId: allUsers[randomInt(0, allUsers.length - 1)].id,
         churchId: church.id,
-        categoryId: '', // Will be set after creating categories
+        categoryId: randomItem(createdDonationCategories).id,
         amount,
-        currency: 'FCFA',
+        currency: 'XAF',
         method: randomItem(methods as any[]),
         reference: `DON-${Date.now()}-${randomInt(1000, 9999)}`,
         status: randomItem(['COMPLETED', 'COMPLETED', 'COMPLETED', 'PENDING'] as any[]),
@@ -630,7 +642,7 @@ async function main() {
         conversionDate: randomDate(new Date('2024-01-01'), new Date()),
         location: randomItem(['Temple Principal', 'Croisade Place Nationale', 'Visite à domicile', 'Évangélisation rue']),
         assignedToId: allUsers[randomInt(0, 4)].id,
-        status: randomItem(['NEW_CONTACT', 'FIRST_FOLLOW_UP', 'IN_PROGRESS', 'BIBLE_STUDY', 'READY_FOR_INTEGRATION', 'INTEGRATED'] as any[]),
+        status: randomItem(['NEW_CONTACT', 'FIRST_VISIT', 'DECISION_MADE', 'DISCIPLESHIP', 'BAPTISM_READY', 'INTEGRATED'] as any[]),
         notes: null,
       }
     });
@@ -706,7 +718,7 @@ async function main() {
             moduleId: module_.id,
             title: `Leçon ${k + 1}: ${randomItem(['Introduction', 'Développement', 'Application', 'Conclusion'])}`,
             content: 'Contenu de la leçon ici...',
-            duration: `${randomInt(15, 45)} min`,
+            duration: randomInt(15, 45),
             order: k + 1,
           }
         });

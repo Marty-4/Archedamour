@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/no-motion';
 import {
   Heart,
   Users,
@@ -217,7 +217,7 @@ export default function AboutPage() {
               title="À Propos de Arche d'Amour"
               description="Découvrez notre histoire, notre mission et les valeurs qui guident notre communauté depuis plus de 19 ans."
               breadcrumbs={[{ label: "À propos" }]}
-              className="text-white [&_h1]:text-white [&_p]:text-white/80 [&_li]:text-white/60 [&_a]:text-white hover:[&_a]:text-white"
+              className="text-slate-900 dark:text-white [&_h1]:text-slate-900 dark:[&_h1]:text-white [&_p]:text-slate-700 dark:[&_p]:text-white/80 [&_li]:text-slate-700 dark:[&_li]:text-white/60 [&_a]:text-slate-900 dark:[&_a]:text-white hover:[&_a]:text-sky-400"
             />
           </motion.div>
         </div>

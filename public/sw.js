@@ -1,7 +1,6 @@
 // Arche d'Amour Service Worker for PWA
-const CACHE_NAME = 'archedamour-v1';
-const STATIC_CACHE = 'archedamour-static-v1';
-const DYNAMIC_CACHE = 'archedamour-dynamic-v1';
+const STATIC_CACHE = 'archedamour-static-v2';
+const DYNAMIC_CACHE = 'archedamour-dynamic-v2';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
@@ -163,7 +162,7 @@ self.addEventListener('push', (event) => {
     title: "Arche d'Amour",
     body: 'Vous avez une nouvelle notification',
     icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    badge: '/icons/icon-192x192.png',
     data: { url: '/' }
   };
 

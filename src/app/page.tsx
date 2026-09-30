@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/no-motion';
 import { 
   Church, 
   Play, 
@@ -30,7 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useTheme } from 'next-themes';
-import { BottomNav } from '@/components/navigation/bottom-nav';
+import { PublicLayout } from '@/components/layouts/public-layout';
 
 // Mock data for demonstration - Arche d'Amour
 const mockChurch = {
@@ -182,14 +182,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
-      {/* Desktop Top Nav */}
-      <BottomNav />
-
-      {/* Mobile Header Spacer */}
-      <div className="h-16 md:hidden" />
-
-      {/* Hero Section - Clean Sky Theme */}
+    <PublicLayout className="bg-sky-50 dark:bg-slate-950">
       <section className="relative overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-sky-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
@@ -710,101 +703,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-            {/* About */}
-            <div>
-              <div className="flex items-center gap-2.5 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
-                  <span className="text-white font-bold text-lg">A</span>
-                </div>
-                <span className="font-bold text-xl text-white">
-                  Arche d<span className="text-sky-400">'</span>Amour
-                </span>
-              </div>
-              <p className="text-slate-400 mb-6 text-sm leading-relaxed">
-                {mockChurch.description.substring(0, 120)}...
-              </p>
-              <div className="space-y-2.5 text-sm text-slate-400">
-                <p className="flex items-center gap-2.5">
-                  <MapPin className="w-4 h-4 text-sky-400" />
-                  {mockChurch.address}
-                </p>
-                <p className="flex items-center gap-2.5">
-                  <Phone className="w-4 h-4 text-sky-400" />
-                  {mockChurch.phone}
-                </p>
-                <p className="flex items-center gap-2.5">
-                  📧 {mockChurch.email}
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="font-semibold text-lg mb-6 text-white">Liens Rapides</h4>
-              <ul className="space-y-3">
-                {['À propos', 'Nos Cultes', 'Prédications', 'Événements', 'Groupes', 'Donner'].map((item) => (
-                  <li key={item}>
-                    <Link href="#" className="text-slate-400 hover:text-sky-400 transition-colors text-sm">
-                      {item}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Service Times */}
-            <div>
-              <h4 className="font-semibold text-lg mb-6 text-white">Horaires des Cultes</h4>
-              <ul className="space-y-3 text-slate-400">
-                <li>
-                  <p className="text-white font-medium text-sm">Dimanche</p>
-                  <p className="text-sm">{mockChurch.serviceTimes.sunday}</p>
-                </li>
-                <li>
-                  <p className="text-white font-medium text-sm">Mercredi</p>
-                  <p className="text-sm">{mockChurch.serviceTimes.wednesday}</p>
-                </li>
-                <li>
-                  <p className="text-white font-medium text-sm">Vendredi</p>
-                  <p className="text-sm">{mockChurch.serviceTimes.friday}</p>
-                </li>
-              </ul>
-            </div>
-
-            {/* Newsletter */}
-            <div>
-              <h4 className="font-semibold text-lg mb-6 text-white">Newsletter</h4>
-              <p className="text-slate-400 mb-4 text-sm">
-                Recevez les nouvelles et les versets du jour directement dans votre boîte mail.
-              </p>
-              <div className="space-y-3">
-                <Input 
-                  placeholder="Votre email" 
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-sky-500"
-                />
-                <Button className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-600 text-white border-0">
-                  S&apos;abonner
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-slate-500 text-sm">
-              © 2024 Arche d&apos;Amour. Tous droits réservés.
-            </p>
-            <div className="flex gap-6 text-sm">
-              <Link href="#" className="text-slate-500 hover:text-sky-400 transition-colors">Confidentialité</Link>
-              <Link href="#" className="text-slate-500 hover:text-sky-400 transition-colors">Conditions</Link>
-              <Link href="#" className="text-slate-500 hover:text-sky-400 transition-colors">Mentions légales</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+      {/* Footer removed — `PublicLayout` supplies a shared footer. */}
+    </PublicLayout>
   );
 }

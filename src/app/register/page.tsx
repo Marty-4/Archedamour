@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod/v4';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/no-motion';
+import Image from "next/image";
 import {
   Mail,
   Lock,
@@ -48,9 +49,9 @@ const registerSchema = z
       .regex(/[a-zA-Z]/, 'Le mot de passe doit contenir au moins une lettre')
       .regex(/\d/, 'Le mot de passe doit contenir au moins un chiffre'),
     confirmPassword: z.string().min(1, 'Veuillez confirmer votre mot de passe'),
-    acceptTerms: z.literal(true, {
-      errorMap: () => ({ message: 'Vous devez accepter les conditions d\'utilisation' }),
-    }),
+    // acceptTerms: z.boolean().refine((value) => value, {
+    //   message: 'Vous devez accepter les conditions d\'utilisation',
+    // }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Les mots de passe ne correspondent pas',
@@ -141,7 +142,8 @@ export default function RegisterPage() {
       phone: '',
       password: '',
       confirmPassword: '',
-      acceptTerms: false as unknown as true,
+      // acceptTerms: true,
+
     },
   });
 
@@ -154,8 +156,8 @@ export default function RegisterPage() {
         email: data.email,
         phone: data.phone,
         password: data.password,
-        confirmPassword: data.confirmPassword,
-        acceptTerms: data.acceptTerms,
+        confirmPassword: data.confirmPassword
+        // acceptTerms: data.acceptTerms,
       });
       setIsSuccess(true);
       toast.success('Compte créé avec succès!', {
@@ -164,11 +166,11 @@ export default function RegisterPage() {
 
       // Redirect after success animation
       setTimeout(() => {
-        router.push('/');
+        router.push('/member/dashboard')
       }, 2000);
     } catch (error) {
       toast.error("Erreur d'inscription", {
-        description:
+        description:  
           error instanceof Error
             ? error.message
             : "Une erreur est survenue lors de l'inscription",
@@ -195,18 +197,20 @@ export default function RegisterPage() {
           className="relative z-10 flex flex-col justify-center items-center p-12 text-white"
         >
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6, type: 'spring' }}
-            className="mb-8"
-          >
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center glow-violet">
-                <Church className="w-14 h-14 text-gold-warm" />
-              </div>
-              <Sparkles className="absolute -top-2 -right-2 w-8 h-8 text-gold-warm animate-pulse" />
-            </div>
-          </motion.div>
+                     initial={{ opacity: 0, y: 20 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.5, duration: 0.6 }}
+                     className="flex justify-center mb-4"
+                   >
+                   <Image
+                     src="/icons/LogoArche.jpg"
+                     alt="Arche d'Amour"
+                     width={100}
+                     height={100}
+                     className="object-cover rounded-full"
+                     priority
+                   />
+                   </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -303,11 +307,21 @@ export default function RegisterPage() {
                 <CardHeader className="space-y-3 pb-6">
                   <motion.div variants={itemVariants}>
                     {/* Mobile Logo */}
-                    <div className="lg:hidden flex justify-center mb-4">
-                      <div className="w-16 h-16 rounded-full gradient-hero flex items-center justify-center">
-                        <Church className="w-8 h-8 text-white" />
-                      </div>
-                    </div>
+                    <motion.div
+                     initial={{ opacity: 0, y: 20 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.5, duration: 0.6 }}
+                     className="flex justify-center mb-4"
+                   >
+                   <Image
+                     src="/icons/LogoArche.jpg"
+                     alt="Arche d'Amour"
+                     width={100}
+                     height={100}
+                     className="object-cover rounded-full"
+                     priority
+                   />
+                   </motion.div>
 
                     <CardTitle className="text-2xl sm:text-3xl font-bold text-center font-serif">
                       Créer un compte
@@ -376,7 +390,7 @@ export default function RegisterPage() {
                         <Input
                           id="phone"
                           type="tel"
-                          placeholder="+225 00 000 000"
+                          placeholder="+242 00 000 000"
                           className={`pl-10 h-11 transition-all focus:ring-2 focus:ring-primary/20 ${
                             errors.phone ? 'border-destructive focus:ring-destructive/20' : ''
                           }`}
@@ -467,7 +481,7 @@ export default function RegisterPage() {
                       <div className="flex items-start space-x-2">
                         <Checkbox
                           id="acceptTerms"
-                          {...register('acceptTerms')}
+                          // {...register('acceptTerms')}
                           disabled={isLoading}
                           className="mt-0.5"
                         />
@@ -491,11 +505,11 @@ export default function RegisterPage() {
                           </Link>
                         </label>
                       </div>
-                      {errors.acceptTerms && (
+                      {/* {errors.acceptTerms && (
                         <p className="text-sm text-destructive mt-1 ml-6">
                           {errors.acceptTerms.message}
                         </p>
-                      )}
+                      )} */}
                     </motion.div>
 
                     {/* Submit Button */}

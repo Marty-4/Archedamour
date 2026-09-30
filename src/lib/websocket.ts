@@ -47,7 +47,7 @@ const WS_CONFIG = {
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
   timeout: 10000,
-  transports: ['websocket', 'polling'] as const,
+  transports: ['websocket', 'polling'],
 };
 
 export function useWebSocket(options: UseWebSocketOptions = {}) {
@@ -63,31 +63,33 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0);
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
+  // Dernier événement « un direct démarre » (null = aucun reçu).
+  const [liveStarted, setLiveStarted] = useState<{ streamId: string; title: string; mediaType: string; startedAt: string } | null>(null);
 
   // Initialize socket connection
   useEffect(() => {
     // Determine URL (use gateway with XTransformPort for local dev)
     let url = WS_CONFIG.url;
     if (!url && typeof window !== 'undefined') {
-      // For development, use the gateway
-      url = window.location.origin;
+      url = `${window.location.protocol}//${window.location.hostname}:3001`;
     }
+
+    // Invité (page /live publique) : aucun token → le service WS classe la
+    // connexion comme GUEST au lieu de tenter une validation qui échouerait.
+    const hasToken = Boolean(token && token.trim());
 
     const socket = io(url, {
       ...WS_CONFIG,
       autoConnect,
-      query: {
-        userId,
-        name: userName,
-        role: userRole,
-        token,
-      },
-      auth: {
-        userId,
-        name: userName,
-        role: userRole,
-        token,
-      },
+      ...(hasToken
+        ? {
+            query: { userId, name: userName, role: userRole, token },
+            auth: { userId, name: userName, role: userRole, token },
+          }
+        : {
+            query: { userId: '', name: 'Invité', role: 'GUEST' },
+            auth: { userId: '', name: 'Invité', role: 'GUEST' },
+          }),
     });
 
     socketRef.current = socket;
@@ -122,6 +124,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       console.log('[WS] Global notification:', notification);
     });
 
+    // « Un direct démarre » : exposé pour toast global dans les pages.
+    socket.on('live:started', (payload: { streamId: string; title: string; mediaType: string; startedAt: string }) => {
+      setLiveStarted(payload);
+    });
+
     return () => {
       socket.disconnect();
       socketRef.current = null;
@@ -134,6 +141,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     socket: socketInstance,
     isConnected,
     onlineUsers,
+    liveStarted,
   };
 }
 
@@ -213,6 +221,61 @@ export function useLiveStream(streamId?: string, options: UseWebSocketOptions = 
     sendMessage,
     sendReaction,
   };
+}
+
+/**
+ * Hook pour le chat de groupe (rooms `group:<id>`, persistance en base
+ * via /api/groupes/messages, diffusion temps réel via socket.io).
+ */
+export function useGroupChat(groupId?: string, options: UseWebSocketOptions = {}) {
+  const { socket, isConnected } = useWebSocket(options);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isJoined, setIsJoined] = useState(false);
+
+  // Rejoint la room du groupe
+  useEffect(() => {
+    if (!socket || !groupId || !isConnected) return;
+
+    const join = () => {
+      socket.emit('group:join', groupId);
+      queueMicrotask(() => setIsJoined(true));
+    };
+    join();
+
+    const handleHistory = (data: { messages: ChatMessage[] }) => {
+      queueMicrotask(() => setMessages(data.messages));
+    };
+
+    const handleMessage = (message: ChatMessage) => {
+      queueMicrotask(() =>
+        setMessages((prev) =>
+          prev.some((m) => m.id === message.id) ? prev : [...prev.slice(-99), message],
+        ),
+      );
+    };
+
+    socket.on('group:history', handleHistory);
+    socket.on('group:message', handleMessage);
+
+    return () => {
+      socket.emit('group:leave', groupId);
+      socket.off('group:history', handleHistory);
+      socket.off('group:message', handleMessage);
+      queueMicrotask(() => setIsJoined(false));
+    };
+  }, [socket, groupId, isConnected]);
+
+  /** Diffuse un message (déjà persisté via l'API) aux membres du groupe. */
+  const sendMessage = useCallback(
+    (payload: { message: string; persisted?: unknown }) => {
+      if (!socket || !groupId || !isJoined) return false;
+      socket.emit('group:message', { groupId, ...payload });
+      return true;
+    },
+    [socket, groupId, isJoined],
+  );
+
+  return { messages, isJoined, sendMessage, setMessages };
 }
 
 /**

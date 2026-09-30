@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion } from '@/lib/no-motion';
 import {
   Play,
   Pause,
@@ -99,7 +99,7 @@ Nous découvrirons ensemble :
 
 Cette prédication vous encouragera à vous approprier cette promesse merveilleuse et à vivre dans une paix constante, quelle que soit votre situation.`,
     preacher: {
-      name: "Pasteur Jean-Marc Lumbu",
+      name: "Berger Lesty Paka",
       role: "Pasteur Principal",
       bio: "Plus de 20 ans de ministère pastoral. Passionné par l'enseignement biblique et le développement des leaders. Auteur de plusieurs livres sur la vie chrétienne.",
       avatar: null,
@@ -138,7 +138,7 @@ Points clés abordés :
 • Les exemples de grands hommes et femmes de foi
 • Surmonter les doutes et les peurs par la foi`,
     preacher: {
-      name: "Pasteur Emmanuel Kamba",
+      name: "Frère Armèle ",
       role: "Pasteur Associé",
       bio: "Spécialiste de l'enseignement sur la foi et la vie de victoire. Plus de 15 ans d'expérience dans le ministère.",
       avatar: null,
@@ -210,7 +210,7 @@ const relatedSermonsMap: Record<string, RelatedSermon[]> = {
     {
       id: "ser_002",
       title: "Marcher par la Foi et non par la Vue",
-      preacher: "Pasteur Emmanuel Kamba",
+      preacher: "Frère Armèle ",
       category: "Foi & Confiance",
       date: "8 Décembre 2024",
       duration: "38:15",
@@ -226,7 +226,7 @@ const relatedSermonsMap: Record<string, RelatedSermon[]> = {
     {
       id: "ser_004",
       title: "La Puissance de la Prière Persistante",
-      preacher: "Pasteur Jean-Marc Lumbu",
+      preacher: "Berger Lesty Paka",
       category: "Prière & Intercession",
       date: "24 Novembre 2024",
       duration: "52:45",
@@ -236,7 +236,7 @@ const relatedSermonsMap: Record<string, RelatedSermon[]> = {
     {
       id: "ser_001",
       title: "La Paix qui Surpasse Toute Intelligence",
-      preacher: "Pasteur Jean-Marc Lumbu",
+      preacher: "Berger Lesty Paka",
       category: "Paix & Consolation",
       date: "15 Décembre 2024",
       duration: "45:32",
@@ -244,7 +244,7 @@ const relatedSermonsMap: Record<string, RelatedSermon[]> = {
     {
       id: "ser_006",
       title: "La Joie comme Force",
-      preacher: "Pasteur Emmanuel Kamba",
+      preacher: "Frère Armèle ",
       category: "Joie & Actions de Grâce",
       date: "10 Novembre 2024",
       duration: "41:55",
@@ -252,7 +252,7 @@ const relatedSermonsMap: Record<string, RelatedSermon[]> = {
     {
       id: "ser_011",
       title: "La Grâce Suffisante",
-      preacher: "Pasteur Emmanuel Kamba",
+      preacher: "Frère Armèle ",
       category: "Grâce & Rédemption",
       date: "6 Octobre 2024",
       duration: "37:50",
@@ -262,7 +262,7 @@ const relatedSermonsMap: Record<string, RelatedSermon[]> = {
     {
       id: "ser_001",
       title: "La Paix qui Surpasse Toute Intelligence",
-      preacher: "Pasteur Jean-Marc Lumbu",
+      preacher: "Berger Lesty Paka",
       category: "Paix & Consolation",
       date: "15 Décembre 2024",
       duration: "45:32",

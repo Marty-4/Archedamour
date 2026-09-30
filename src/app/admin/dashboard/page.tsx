@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { motion } from '@/lib/no-motion';
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Users,
   UserPlus,
@@ -41,15 +42,7 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
-import {
-  adminUser,
-  memberStats,
-  donationStats,
-  recentMembers,
-  upcomingEvents,
-  activityFeed,
-  adminStatCards,
-} from "@/lib/mock-data";
+import { LiveStartedToast } from "@/components/shared/live-started-toast";
 
 // Recharts imports
 import {
@@ -132,10 +125,10 @@ const bgColorMap: Record<string, string> = {
 // ============================================
 // ADMIN STATS CARDS COMPONENT
 // ============================================
-function AdminStatsCards() {
+function AdminStatsCards({ stats }: { stats: any[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-      {adminStatCards.map((stat, index) => {
+      {stats.map((stat, index) => {
         const Icon = iconMap[stat.icon] || Activity;
         const isPositive = stat.change >= 0;
 
@@ -181,8 +174,8 @@ function AdminStatsCards() {
 // ============================================
 // MEMBERSHIP GROWTH CHART COMPONENT
 // ============================================
-function MembershipGrowthChart() {
-  const data = memberStats.monthlyGrowth.map(item => ({
+function MembershipGrowthChart({ memberStats }: { memberStats: any }) {
+  const data = memberStats.monthlyGrowth.map((item: any) => ({
     month: item.month,
     membres: item.count,
     nouveaux: item.newMembers,
@@ -274,7 +267,7 @@ function MembershipGrowthChart() {
 // ============================================
 // DONATIONS PIE CHART COMPONENT
 // ============================================
-function DonationsPieChart() {
+function DonationsPieChart({ donationStats }: { donationStats: any }) {
   const data = donationStats.breakdown.map(item => ({
     name: item.category,
     value: item.amount,
@@ -368,7 +361,7 @@ function DonationsPieChart() {
 // ============================================
 // RECENT MEMBERS TABLE COMPONENT
 // ============================================
-function RecentMembersTable() {
+function RecentMembersTable({ recentMembers }: { recentMembers: any[] }) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -445,7 +438,7 @@ function RecentMembersTable() {
 // ============================================
 // UPCOMING EVENTS TABLE COMPONENT
 // ============================================
-function UpcomingEventsTable() {
+function UpcomingEventsTable({ upcomingEvents }: { upcomingEvents: any[] }) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'upcoming':
@@ -526,7 +519,7 @@ function UpcomingEventsTable() {
 // ============================================
 // ACTIVITY FEED COMPONENT
 // ============================================
-function ActivityFeed() {
+function ActivityFeed({ activityFeed }: { activityFeed: any[] }) {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'member_join':
@@ -591,11 +584,37 @@ function ActivityFeed() {
 // ============================================
 // MAIN ADMIN DASHBOARD PAGE
 // ============================================
+const emptyDashboard = {
+  adminUser: { name: "Administration", email: "", avatar: null, role: "ADMIN" }, adminStatCards: [],
+  memberStats: { monthlyGrowth: [], growthRate: 0 }, donationStats: { breakdown: [], percentageChange: 0 },
+  recentMembers: [], upcomingEvents: [], activityFeed: [],
+};
+
 export default function AdminDashboardPage() {
+  const [dashboard, setDashboard] = useState<any>(emptyDashboard);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/admin/dashboard")
+      .then((response) => {
+        if (response.status === 401) { router.replace("/login"); return Promise.reject(new Error("Session expirée")); }
+        if (response.status === 403) { router.replace("/member/dashboard"); return Promise.reject(new Error("Accès refusé")); }
+        return response.ok ? response.json() : Promise.reject(new Error("Dashboard indisponible"));
+      })
+      .then(setDashboard)
+      .catch(() => {
+        // Erreur déjà reflétée par l'UI (état vide) — pas de bruit en console.
+      })
+      .finally(() => setLoading(false));
+  }, [router]);
+
+  const { adminUser, adminStatCards, memberStats, donationStats, recentMembers, upcomingEvents, activityFeed } = dashboard;
   const firstName = adminUser.name.split(' ')[0];
 
   return (
     <DashboardLayout user={adminUser} variant="admin">
+      <LiveStartedToast target="/admin/live-studio" />
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -620,7 +639,7 @@ export default function AdminDashboardPage() {
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Panneau d&apos;administration • {new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {loading ? "Chargement des données…" : "Panneau d’administration"} • {new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             </div>
           </div>
@@ -639,22 +658,22 @@ export default function AdminDashboardPage() {
         </motion.div>
 
         {/* Statistics Overview */}
-        <AdminStatsCards />
+        <AdminStatsCards stats={adminStatCards} />
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MembershipGrowthChart />
-          <DonationsPieChart />
+          <MembershipGrowthChart memberStats={memberStats} />
+          <DonationsPieChart donationStats={donationStats} />
         </div>
 
         {/* Tables Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RecentMembersTable />
-          <UpcomingEventsTable />
+          <RecentMembersTable recentMembers={recentMembers} />
+          <UpcomingEventsTable upcomingEvents={upcomingEvents} />
         </div>
 
         {/* Activity Feed */}
-        <ActivityFeed />
+        <ActivityFeed activityFeed={activityFeed} />
       </motion.div>
     </DashboardLayout>
   );

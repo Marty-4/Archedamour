@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from '@/lib/no-motion';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -68,6 +68,7 @@ const allEvents: Event[] = [
     endTime: "21h00",
     location: "Temple Principal - Salle de Célébration",
     category: "Louange",
+    registeredCount: 0,
     isUpcoming: true,
   },
   {
@@ -105,6 +106,7 @@ const allEvents: Event[] = [
     endTime: "16h00",
     location: "Temple Principal",
     category: "Événement",
+    registeredCount: 0,
     isUpcoming: true,
   },
   {
@@ -142,6 +144,7 @@ const allEvents: Event[] = [
     time: "10h00",
     location: "Temple Principal",
     category: "Culte",
+    registeredCount: 0,
     isUpcoming: false,
   },
 ];
@@ -280,7 +283,7 @@ export default function EventsPage() {
               title="Événements"
               description="Découvrez nos prochains rassemblements, retraites et activités communautaires."
               breadcrumbs={[{ label: "Événements" }]}
-              className="text-white [&_h1]:text-white [&_p]:text-white/80 [&_li]:text-white/60 [&_a]:text-white hover:[&_a]:text-white"
+              className="text-slate-900 dark:text-white [&_h1]:text-slate-900 dark:[&_h1]:text-white [&_p]:text-slate-700 dark:[&_p]:text-white/80 [&_li]:text-slate-700 dark:[&_li]:text-white/60 [&_a]:text-slate-900 dark:[&_a]:text-white hover:[&_a]:text-sky-400"
             />
           </motion.div>
         </div>
