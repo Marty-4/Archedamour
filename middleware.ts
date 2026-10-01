@@ -18,12 +18,15 @@ const SESSION_COOKIE = SESSION_CONFIG.cookieName;
  */
 function addSecurityHeaders(response: NextResponse): NextResponse {
   // Basic security headers
-  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Frame-Options", "DENY"); 
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
-  
+  response.headers.set(
+  "Permissions-Policy",
+  "geolocation=(), microphone=(self), camera=(self)"
+);
+
   // Content Security Policy - SEC-022
   // Note: Adjust based on your actual CDN and service providers
   response.headers.set(
