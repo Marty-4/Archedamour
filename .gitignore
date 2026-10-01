@@ -140,3 +140,4 @@ docker-compose.override.yml
 # DOCUMENTATION TEMPORARY
 # ============================================
 3443
+.env*

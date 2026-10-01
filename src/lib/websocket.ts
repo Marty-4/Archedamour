@@ -42,6 +42,7 @@ interface Notification {
 const WS_CONFIG = {
   url: process.env.NEXT_PUBLIC_WS_URL || '',
   path: '/socket.io',
+  withCredentials: true,
   autoConnect: true,
   reconnection: true,
   reconnectionAttempts: 5,

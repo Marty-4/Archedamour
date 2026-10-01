@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, description, thumbnail, platform, mediaType, streamKey, streamUrl, status, scheduledStart, scheduledEnd, actualStart } = body;
+    const { title, description, thumbnail, platform, mediaType, streamKey, streamUrl, status, scheduledStart, scheduledEnd, actualStart, hostBroadcast } = body;
 
     if (!title) {
       return apiError("Titre requis");
@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
     const item = await db.liveStream.create({
       data: {
         churchId,
+        hostId: hostBroadcast === true && (platform ?? "INTERNAL") === "INTERNAL" && (status ?? "SCHEDULED") === "LIVE" ? user.id : null,
         title,
         description,
         thumbnail,

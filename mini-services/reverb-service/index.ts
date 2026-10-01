@@ -40,14 +40,35 @@ const httpServer = process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH
   : createServer(requestHandler);
 
 // Configure Socket.IO
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://archedamour.vercel.app',
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+];
+
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Origin non autorisée'));
+      // Autoriser les requêtes sans Origin
+      if (!origin) {
+        return callback(null, true);
       }
+
+      // Autoriser les domaines explicitement configurés
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Autoriser les adresses locales en développement
+      if (
+        /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+
+      console.warn(`[WS] Origin refusée: ${origin}`);
+      return callback(new Error('Origin non autorisée'));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
@@ -344,6 +365,7 @@ io.on('connection', (socket) => {
   // Join live stream room
   socket.on('live:join', (streamId: string) => {
     const roomName = `live:${streamId}`;
+    const existingPeerIds = [...(io.sockets.adapter.rooms.get(roomName) ?? [])];
     socket.join(roomName);
     
     // Track viewer count
@@ -380,6 +402,14 @@ io.on('connection', (socket) => {
       peerId: socket.id,
       role: socket.data.userRole,
     });
+    for (const peerId of existingPeerIds) {
+      const peerSocket = io.sockets.sockets.get(peerId);
+      socket.emit('live:peer-joined', {
+        streamId,
+        peerId,
+        role: peerSocket?.data.userRole ?? 'MEMBER',
+      });
+    }
   });
 
   // ============================================

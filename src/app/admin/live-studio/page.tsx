@@ -107,7 +107,7 @@ export default async function LiveStudioPage() {
       <div className="space-y-6">
         <AdminPageHeader title="Live Studio" description="Diffusions en direct programmées et passées." />
 
-        <LiveStudioControls />
+        <LiveStudioControls userId={user.id} />
 
         {/* Appel audio : panneau animateur (participants temps réel) */}
         {liveNow.some((item) => item.mediaType === "AUDIO") && (

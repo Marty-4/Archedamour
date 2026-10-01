@@ -16,6 +16,7 @@ import {
   Settings2,
   Signal,
   Square,
+  SwitchCamera,
   Timer,
   Video,
   Volume2,
@@ -30,6 +31,16 @@ import { Switch } from "@/components/ui/switch";
 import { useWebSocket } from "@/lib/websocket";
 
 type SignalMessage = { streamId: string; senderId: string; signal: RTCSessionDescriptionInit | RTCIceCandidateInit };
+type LiveRecord = {
+  id: string;
+  title: string;
+  platform: string;
+  status: string;
+  scheduledStart: string | null;
+  actualStart: string | null;
+  mediaType: "VIDEO" | "AUDIO";
+  hostId: string | null;
+};
 
 function formatDuration(startedAt: Date) {
   const seconds = Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / 1000));
@@ -39,7 +50,7 @@ function formatDuration(startedAt: Date) {
   return h === "00" ? `${m}:${s}` : `${h}:${m}:${s}`;
 }
 
-export function LiveStudioControls() {
+export function LiveStudioControls({ userId }: { userId: string }) {
   const { socket, isConnected } = useWebSocket({ userRole: "ADMIN", userName: "Studio Live" });
   const [title, setTitle] = useState("Direct de l'église");
   const [mediaType, setMediaType] = useState<"VIDEO" | "AUDIO">("VIDEO");
@@ -53,24 +64,35 @@ export function LiveStudioControls() {
   const [showSettings, setShowSettings] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
+  const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
+  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
+  const [cameraFacingMode, setCameraFacingMode] = useState<"user" | "environment">("user");
   const [elapsed, setElapsed] = useState("00:00");
   const [startedAt, setStartedAt] = useState<Date | null>(null);
   const [connectionQuality, setConnectionQuality] = useState<"good" | "degraded" | "unknown">("unknown");
   const [showPreviewSettings, setShowPreviewSettings] = useState(false);
   // Direct en cours détecté en base (créé via le formulaire ou une autre session)
   const [activeStream, setActiveStream] = useState<
-    { id: string; title: string; platform: string; scheduledStart: string | null } | null
+    LiveRecord | null
   >(null);
   const [stoppingActive, setStoppingActive] = useState(false);
   const previewRef = useRef<HTMLVideoElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<MediaStream | null>(null);
   const peersRef = useRef(new Map<string, RTCPeerConnection>());
+  const peerRefreshVersionRef = useRef(0);
+  const [peerRefreshVersion, setPeerRefreshVersion] = useState(0);
+  const restoreAttemptedRef = useRef(false);
+  const mediaRequestRef = useRef(false);
+  const mountedRef = useRef(false);
+  const cameraFacingModeRef = useRef<"user" | "environment">("user");
 
   const stopMedia = useCallback(() => {
     mediaRef.current?.getTracks().forEach((track) => { track.stop(); });
     mediaRef.current = null;
+    if (previewRef.current) previewRef.current.srcObject = null;
     setMediaReady(false);
+    setHasMultipleCameras(false);
     setAudioEnabled(true);
     setVideoEnabled(true);
   }, []);
@@ -79,29 +101,45 @@ export function LiveStudioControls() {
     setWebsocketHealthUrl(`https://${window.location.hostname}:3001/health`);
   }, []);
 
-  // Détecte un direct déjà en cours en base (bouton Arrêter toujours disponible).
+  // Détecte un direct déjà en cours en base et restaure celui de cet animateur.
   const refreshActiveStream = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/live");
+      if (!res.ok) return null;
       const payload = await res.json().catch(() => null);
-      const items: Array<{ id: string; title: string; platform: string; status: string; scheduledStart: string | null }> =
-        payload?.data ?? payload ?? [];
-      const live = items.find((item) => item.status === "LIVE");
-      setActiveStream(live ? { id: live.id, title: live.title, platform: live.platform, scheduledStart: live.scheduledStart } : null);
+      const items: LiveRecord[] = payload?.data ?? payload ?? [];
+      const live = items.find((item) => item.status === "LIVE" && item.hostId === userId && item.platform === "INTERNAL")
+        ?? items.find((item) => item.status === "LIVE");
+      setActiveStream(live ?? null);
+      return live ?? null;
     } catch {
-      // Silencieux : le badge disparaît simplement.
+      return null;
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
-    void refreshActiveStream();
-  }, [refreshActiveStream]);
-
-  useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       mediaRef.current?.getTracks().forEach((track) => track.stop());
+      peersRef.current.forEach((peer) => peer.close());
+      peersRef.current.clear();
     };
   }, []);
+
+  useEffect(() => {
+    if (!userId || restoreAttemptedRef.current) return;
+    restoreAttemptedRef.current = true;
+    void (async () => {
+      const live = await refreshActiveStream();
+      if (!live || live.hostId !== userId || live.platform !== "INTERNAL") return;
+      setStreamId(live.id);
+      setTitle(live.title);
+      setMediaType(live.mediaType);
+      setStartedAt(live.actualStart ? new Date(live.actualStart) : new Date());
+      if (await restoreMedia(live.mediaType, false)) setActiveStream(null);
+    })();
+  }, [refreshActiveStream, userId]);
 
   // Chronomètre du direct
   useEffect(() => {
@@ -179,17 +217,27 @@ export function LiveStudioControls() {
       if (data.streamId === streamId) setViewerCount(Math.max(0, data.count));
     };
 
+    const joinStream = () => {
+      peersRef.current.forEach((peer) => peer.close());
+      peersRef.current.clear();
+      socket.emit("live:join", streamId);
+    };
+
     socket.on("live:peer-joined", handlePeerJoined);
     socket.on("live:signal", handleSignal);
     socket.on("live:viewers:update", handleViewerUpdate);
-    socket.emit("live:join", streamId);
+    socket.on("connect", joinStream);
+    if (socket.connected) joinStream();
     return () => {
       socket.emit("live:leave", streamId);
+      socket.off("connect", joinStream);
       socket.off("live:peer-joined", handlePeerJoined);
       socket.off("live:signal", handleSignal);
       socket.off("live:viewers:update", handleViewerUpdate);
+      peersRef.current.forEach((peer) => peer.close());
+      peersRef.current.clear();
     };
-  }, [socket, streamId]);
+  }, [socket, streamId, peerRefreshVersion]);
 
   // === APPEL AUDIO (deux sens) ===
   // Pour un direct AUDIO, l'animateur rejoint aussi le catalogue d'appel :
@@ -263,18 +311,26 @@ export function LiveStudioControls() {
       }
     };
 
-    socket.emit("live:call:join", { streamId, displayName: "Animateur" });
+    const joinCall = () => {
+      callPeers.forEach((peer) => peer.close());
+      callPeers.clear();
+      socket.emit("live:call:join", { streamId, displayName: "Animateur" });
+    };
+
     socket.on("live:call:participants", handleParticipants);
     socket.on("live:signal", handleSignal);
+    socket.on("connect", joinCall);
+    if (socket.connected) joinCall();
 
     return () => {
       socket.emit("live:call:leave", { streamId });
+      socket.off("connect", joinCall);
       socket.off("live:call:participants", handleParticipants);
       socket.off("live:signal", handleSignal);
       callPeers.forEach((peer) => peer.close());
       callPeers.clear();
     };
-  }, [socket, streamId, mediaType, mediaReady]);
+  }, [socket, streamId, mediaType, mediaReady, peerRefreshVersion]);
 
   async function startLive() {
     setLoading(true);
@@ -285,6 +341,14 @@ export function LiveStudioControls() {
       const media = mediaRef.current ?? await navigator.mediaDevices.getUserMedia({ audio: true, video: mediaType === "VIDEO" });
       mediaRef.current = media;
       setMediaReady(true);
+      if (mediaType === "VIDEO") {
+        const facingMode = media.getVideoTracks()[0]?.getSettings().facingMode;
+        if (facingMode === "environment" || facingMode === "user") {
+          cameraFacingModeRef.current = facingMode;
+          setCameraFacingMode(facingMode);
+        }
+        void refreshCameraAvailability();
+      }
       if (previewRef.current && mediaType === "VIDEO") {
         previewRef.current.srcObject = media;
         await previewRef.current.play().catch(() => undefined);
@@ -292,7 +356,7 @@ export function LiveStudioControls() {
       const response = await fetch("/api/admin/live", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, platform: "INTERNAL", mediaType, status: "LIVE", actualStart: new Date().toISOString() }),
+        body: JSON.stringify({ title, platform: "INTERNAL", mediaType, status: "LIVE", hostBroadcast: true, actualStart: new Date().toISOString() }),
       });
       const result = await response.json().catch(() => null);
       if (!response.ok) {
@@ -314,45 +378,167 @@ export function LiveStudioControls() {
     }
   }
 
-  // Retour sur la page alors qu'un direct est en cours dans CE navigateur :
-  // le navigateur a stoppé la capture au démontage du composant. On permet
-  // de reprendre la caméra/micro et de rattacher les tracks aux peers.
-  async function resumeMedia() {
+  async function refreshCameraAvailability() {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      setHasMultipleCameras(devices.filter((device) => device.kind === "videoinput").length > 1);
+    } catch {
+      setHasMultipleCameras(false);
+    }
+  }
+
+  async function restoreMedia(type: "VIDEO" | "AUDIO" = mediaType, showFeedback = true) {
+    if (mediaRequestRef.current) return false;
+    mediaRequestRef.current = true;
     setLoading(true);
     try {
-      if (!streamId) throw new Error("Aucun direct en cours depuis ce navigateur.");
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("Capture audio/vidéo indisponible.");
       if (!window.isSecureContext) throw new Error("La caméra/micro exige HTTPS (ou localhost).");
       const media = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: mediaType === "VIDEO",
+        video: type === "VIDEO",
       });
+      if (!mountedRef.current) {
+        media.getTracks().forEach((track) => track.stop());
+        return false;
+      }
       mediaRef.current?.getTracks().forEach((track) => track.stop());
       mediaRef.current = media;
       setMediaReady(true);
-      if (previewRef.current && mediaType === "VIDEO") {
+      if (type === "VIDEO") {
+        const facingMode = media.getVideoTracks()[0]?.getSettings().facingMode;
+        if (facingMode === "environment" || facingMode === "user") {
+          cameraFacingModeRef.current = facingMode;
+          setCameraFacingMode(facingMode);
+        }
+        void refreshCameraAvailability();
+      }
+      if (previewRef.current && type === "VIDEO") {
         previewRef.current.srcObject = media;
         await previewRef.current.play().catch(() => undefined);
       }
-      // Rattache les nouvelles tracks aux peers existants (spectateurs déjà
-      // connectés) sans renégociation complète.
-      peersRef.current.forEach((peer) => {
-        const senders = peer.getSenders();
-        media.getTracks().forEach((track) => {
-          const sender = senders.find((s) => s.track?.kind === track.kind);
-          if (sender) void sender.replaceTrack(track);
-          else peer.addTrack(track, media);
-        });
-      });
-      setDeviceStatus("Aperçu repris : la diffusion continue vers les spectateurs connectés.");
-      toast.success("Caméra/micro rattachés au direct en cours.");
+      peerRefreshVersionRef.current += 1;
+      setPeerRefreshVersion(peerRefreshVersionRef.current);
+      setDeviceStatus("Caméra et micro reconnectés au direct.");
+      if (showFeedback) toast.success("Caméra et micro reconnectés au direct.");
+      return true;
     } catch (error) {
-      setDeviceStatus(error instanceof Error ? error.message : "Impossible de reprendre la capture.");
-      toast.error(error instanceof Error ? error.message : "Impossible de reprendre la capture.");
+      const message = error instanceof Error ? error.message : "Impossible de reprendre la capture.";
+      setDeviceStatus(message);
+      if (showFeedback) toast.error(message);
+      return false;
     } finally {
+      mediaRequestRef.current = false;
       setLoading(false);
     }
   }
+
+  async function switchCamera() {
+    const media = mediaRef.current;
+    const oldTrack = media?.getVideoTracks()[0];
+    if (!media || !oldTrack || isSwitchingCamera) return;
+
+    const nextFacingMode = cameraFacingModeRef.current === "user" ? "environment" : "user";
+    const previousFacingMode = cameraFacingModeRef.current;
+    const videoSenders = [...peersRef.current.values()].flatMap((peer) =>
+      peer.getSenders().filter((sender) => sender.track?.kind === "video"),
+    );
+    let newTrack: MediaStreamTrack | undefined;
+    let oldTrackStopped = false;
+    setIsSwitchingCamera(true);
+    try {
+      const detached = await Promise.allSettled(videoSenders.map((sender) => sender.replaceTrack(null)));
+      if (detached.some((result) => result.status === "rejected")) {
+        throw new Error("Impossible de suspendre temporairement la vidéo des spectateurs.");
+      }
+      media.removeTrack(oldTrack);
+      oldTrack.stop();
+      oldTrackStopped = true;
+      const replacementStream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: { exact: nextFacingMode } },
+      });
+      const replacementTrack = replacementStream.getVideoTracks()[0];
+      if (!replacementTrack) throw new Error("Aucune caméra compatible n'a été trouvée.");
+      newTrack = replacementTrack;
+      replacementTrack.enabled = videoEnabled;
+
+      const results = await Promise.allSettled(videoSenders.map((sender) => sender.replaceTrack(replacementTrack)));
+      if (results.some((result) => result.status === "rejected")) {
+        throw new Error("La nouvelle caméra n'a pas pu être reliée à tous les spectateurs.");
+      }
+
+      media.addTrack(replacementTrack);
+      cameraFacingModeRef.current = nextFacingMode;
+      setCameraFacingMode(nextFacingMode);
+      if (previewRef.current) {
+        previewRef.current.srcObject = media;
+        await previewRef.current.play().catch(() => undefined);
+      }
+      await refreshCameraAvailability();
+    } catch (error) {
+      const name = error instanceof DOMException ? error.name : "";
+      const message = name === "NotAllowedError"
+        ? "L'accès à la caméra a été refusé. Autorisez la caméra dans les réglages du navigateur."
+        : name === "NotFoundError"
+          ? "Aucune caméra arrière disponible sur cet appareil."
+          : name === "OverconstrainedError"
+            ? "Cette caméra n'est pas disponible sur cet appareil."
+            : error instanceof Error
+              ? error.message
+              : "Impossible de changer de caméra.";
+      if (newTrack) {
+        media.removeTrack(newTrack);
+        newTrack.stop();
+      }
+      if (oldTrackStopped) {
+        try {
+          const recoveryStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: { facingMode: { ideal: previousFacingMode } },
+          });
+          const recoveryTrack = recoveryStream.getVideoTracks()[0];
+          if (recoveryTrack) {
+            recoveryTrack.enabled = videoEnabled;
+            media.addTrack(recoveryTrack);
+            await Promise.allSettled(videoSenders.map((sender) => sender.replaceTrack(recoveryTrack)));
+            cameraFacingModeRef.current = previousFacingMode;
+            setCameraFacingMode(previousFacingMode);
+            if (previewRef.current) {
+              previewRef.current.srcObject = media;
+              await previewRef.current.play().catch(() => undefined);
+            }
+          }
+        } catch {
+          toast.error("La caméra n'a pas pu être restaurée. Le micro reste actif.");
+        }
+      } else {
+        await Promise.allSettled(videoSenders.map((sender) => sender.replaceTrack(oldTrack)));
+      }
+      toast.error(message);
+    } finally {
+      setIsSwitchingCamera(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!mediaReady || mediaType !== "VIDEO") return;
+    const handleDeviceChange = () => { void refreshCameraAvailability(); };
+    void refreshCameraAvailability();
+    navigator.mediaDevices?.addEventListener?.("devicechange", handleDeviceChange);
+    return () => navigator.mediaDevices?.removeEventListener?.("devicechange", handleDeviceChange);
+  }, [mediaReady, mediaType]);
+
+  useEffect(() => {
+    if (!streamId) return;
+    const handleVisibilityChange = () => {
+      const hasEndedTrack = mediaRef.current?.getTracks().some((track) => track.readyState === "ended");
+      if (document.visibilityState === "visible" && hasEndedTrack) void restoreMedia(mediaType, false);
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [mediaType, streamId]);
 
   async function testDevices() {
     try {
@@ -379,16 +565,14 @@ export function LiveStudioControls() {
     setLoading(true);
     setStoppingActive(true);
     try {
-      await fetch("/api/admin/live", {
+      const response = await fetch("/api/admin/live", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status: "ENDED", actualEnd: new Date().toISOString() }),
       });
+      if (!response.ok) throw new Error("Impossible d'arrêter le direct.");
       socket?.emit("admin:live:status", { streamId: id, status: "ENDED" });
       if (streamId) {
-        socket?.emit("live:leave", streamId);
-        peersRef.current.forEach((peer) => peer.close());
-        peersRef.current.clear();
         stopMedia();
         setStreamId(null);
         setStartedAt(null);
@@ -482,10 +666,10 @@ export function LiveStudioControls() {
           </div>
         )}
 
-        {!streamId && activeStream && !mediaReady && (
-          <Button variant="outline" onClick={resumeMedia} disabled={loading} className="w-fit">
+        {!streamId && activeStream?.hostId === userId && activeStream.platform === "INTERNAL" && !mediaReady && (
+          <Button variant="outline" onClick={() => void restoreMedia(activeStream.mediaType, true)} disabled={loading} className="w-fit">
             <Video className="mr-2 h-4 w-4" />
-            Reprendre la caméra (direct en cours)
+            Reprendre caméra et micro
           </Button>
         )}
 
@@ -574,6 +758,18 @@ export function LiveStudioControls() {
                   <qualityBadge.icon className="h-4 w-4" /> {qualityBadge.label}
                 </span>
               )}
+              {mediaType === "VIDEO" && hasMultipleCameras && (
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  onClick={switchCamera}
+                  disabled={isSwitchingCamera || loading}
+                  aria-label={`Passer à la caméra ${cameraFacingMode === "user" ? "arrière" : "avant"}`}
+                  title={`Passer à la caméra ${cameraFacingMode === "user" ? "arrière" : "avant"}`}
+                >
+                  {isSwitchingCamera ? <Loader2 className="h-4 w-4 animate-spin" /> : <SwitchCamera className="h-4 w-4" />}
+                </Button>
+              )}
               <Button size="icon" variant="secondary" onClick={() => setShowSettings((value) => !value)} aria-label="Afficher les réglages">
                 <Settings2 className="h-4 w-4" />
               </Button>
@@ -602,10 +798,19 @@ export function LiveStudioControls() {
                 <span className="text-lg font-semibold">Le direct démarre...</span>
               </div>
             )}
+            {!mediaReady && (
+              <div className="absolute inset-3 z-10 flex flex-col items-center justify-center gap-3 rounded-xl bg-black/85 p-5 text-center text-white">
+                <p>Le direct est toujours actif. La caméra et le micro doivent être reconnectés.</p>
+                <Button onClick={() => void restoreMedia(mediaType, true)} disabled={loading}>
+                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Video className="mr-2 h-4 w-4" />}
+                  Reprendre caméra et micro
+                </Button>
+              </div>
+            )}
             <div className="absolute inset-x-6 bottom-6 flex items-center justify-between gap-3 rounded-xl bg-black/75 p-3 text-sm text-white backdrop-blur-sm">
               <span className="flex items-center gap-2">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />
-                <span className="truncate">Votre {mediaType === "VIDEO" ? "caméra et votre micro" : "micro"} sont diffusés</span>
+                <span className="truncate">{mediaReady ? `Votre ${mediaType === "VIDEO" ? "caméra et votre micro" : "micro"} sont diffusés` : "Direct actif, capture à reconnecter"}</span>
               </span>
               <Button size="sm" variant="destructive" onClick={stopLive} disabled={loading}>
                 <Square className="mr-2 h-4 w-4" />Arrêter

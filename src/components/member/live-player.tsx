@@ -22,7 +22,9 @@ export function LivePlayer({ streamId, mediaType, title, startedAt }: Props) {
   const mediaRef = useRef<HTMLVideoElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
+  const hostSocketIdRef = useRef<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [liveEnded, setLiveEnded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -34,6 +36,12 @@ export function LivePlayer({ streamId, mediaType, title, startedAt }: Props) {
     if (!socket) return;
     const handleSignal = async (data: SignalMessage) => {
       if (data.streamId !== streamId) return;
+      if (hostSocketIdRef.current && hostSocketIdRef.current !== data.senderId) {
+        peerRef.current?.close();
+        peerRef.current = null;
+        setConnected(false);
+      }
+      hostSocketIdRef.current = data.senderId;
       if (!peerRef.current) {
         const peer = new RTCPeerConnection({
           iceServers: [
@@ -52,6 +60,7 @@ export function LivePlayer({ streamId, mediaType, title, startedAt }: Props) {
       }
       const peer = peerRef.current;
       if ("type" in data.signal && data.signal.type === "offer") {
+        setLiveEnded(false);
         await peer.setRemoteDescription(data.signal);
         const answer = await peer.createAnswer();
         await peer.setLocalDescription(answer);
@@ -60,14 +69,35 @@ export function LivePlayer({ streamId, mediaType, title, startedAt }: Props) {
         await peer.addIceCandidate(data.signal);
       }
     };
+    const handleStatus = (data: { status: string }) => {
+      if (data.status !== "ENDED" && data.status !== "CANCELLED") return;
+      peerRef.current?.close();
+      peerRef.current = null;
+      hostSocketIdRef.current = null;
+      if (mediaRef.current) mediaRef.current.srcObject = null;
+      setConnected(false);
+      setLiveEnded(true);
+    };
+    const joinStream = () => {
+      peerRef.current?.close();
+      peerRef.current = null;
+      hostSocketIdRef.current = null;
+      setConnected(false);
+      socket.emit("live:join", streamId);
+    };
 
     socket.on("live:signal", handleSignal);
-    socket.emit("live:join", streamId);
+    socket.on(`live:${streamId}:status`, handleStatus);
+    socket.on("connect", joinStream);
+    if (socket.connected) joinStream();
     return () => {
       socket.emit("live:leave", streamId);
       socket.off("live:signal", handleSignal);
+      socket.off(`live:${streamId}:status`, handleStatus);
+      socket.off("connect", joinStream);
       peerRef.current?.close();
       peerRef.current = null;
+      hostSocketIdRef.current = null;
     };
   }, [socket, streamId]);
 
@@ -172,8 +202,7 @@ export function LivePlayer({ streamId, mediaType, title, startedAt }: Props) {
 
       {!connected && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950 text-white">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Connexion au direct...</span>
+          {liveEnded ? <span>Ce direct est terminé.</span> : <><Loader2 className="h-6 w-6 animate-spin" /><span>Connexion au direct...</span></>}
         </div>
       )}
 
