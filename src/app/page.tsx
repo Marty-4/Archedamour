@@ -464,7 +464,7 @@ export default function HomePage() {
                       <stat.icon className="w-5 h-5" />
                     </div>
                     <div className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                      {stat.value.toLocaleString()}
+                      {stat.value.toLocaleString("fr-FR")}
                     </div>
                     <div className="text-xs md:text-sm text-slate-500 dark:text-slate-400">{stat.label}</div>
                   </Card>
