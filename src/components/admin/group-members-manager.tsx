@@ -150,7 +150,7 @@ export function GroupMembersManager({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[92dvh] overflow-y-auto p-4 sm:max-w-lg sm:p-6">
         <DialogHeader>
           <DialogTitle>Membres — {groupName}</DialogTitle>
           <DialogDescription>

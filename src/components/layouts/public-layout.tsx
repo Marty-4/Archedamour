@@ -130,7 +130,7 @@ export function PublicLayout({ children, className }: PublicLayoutProps) {
                   className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <MapPin className="h-4 w-4 text-primary shrink-0" />
-                  <span>123 Rue du Temple, 75001 Paris</span>
+                  <span>Quartier Songolo, Pointe-Noire, République du Congo</span>
                 </a>
                 <a
                   href="tel:+33123456789"

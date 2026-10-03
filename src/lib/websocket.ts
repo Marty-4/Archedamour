@@ -38,9 +38,19 @@ interface Notification {
   createdAt: string;
 }
 
+const resolveWebSocketUrl = () => {
+  const configuredUrl = process.env.NEXT_PUBLIC_WS_URL?.trim();
+  if (configuredUrl) return configuredUrl;
+
+  if (typeof window === 'undefined') return '';
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}`;
+};
+
 // Default configuration
 const WS_CONFIG = {
-  url: process.env.NEXT_PUBLIC_WS_URL || '',
+  url: resolveWebSocketUrl(),
   path: '/socket.io',
   withCredentials: true,
   autoConnect: true,
@@ -48,7 +58,7 @@ const WS_CONFIG = {
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
   timeout: 10000,
-  transports: ['websocket', 'polling'],
+  transports: ['polling', 'websocket'],
 };
 
 export function useWebSocket(options: UseWebSocketOptions = {}) {
@@ -69,8 +79,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   // Initialize socket connection
   useEffect(() => {
-    // Determine URL (use gateway with XTransformPort for local dev)
-    let url = WS_CONFIG.url;
+    // Determine URL (prefer configured endpoint, otherwise use same-origin host)
+    let url = resolveWebSocketUrl();
     if (!url && typeof window !== 'undefined') {
       url = `${window.location.protocol}//${window.location.hostname}:3001`;
     }

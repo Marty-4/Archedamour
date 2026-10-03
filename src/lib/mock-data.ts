@@ -34,8 +34,8 @@ export const currentUser: UserProfile = {
 export const adminUser: UserProfile = {
   ...currentUser,
   id: "adm_001",
-  name: "Pasteur Jean-Marc Lumbu",
-  email: "pasteur.lumbu@archedamour.app",
+  name: "Pasteur Lesty Paka",
+  email: "Lestypaka@archedamour.app",
   role: "ADMIN",
   department: "Direction",
   group: "Conseil d'Administration"
@@ -74,7 +74,7 @@ export const upcomingServices: Service[] = [
     date: "Dimanche 22 Décembre",
     time: "07:00 - 10:00",
     location: "Temple Principal",
-    preacher: "Pasteur Jean-Marc Lumbu",
+    preacher: "Pasteur Lesty Paka",
     type: "dimanche",
     isLive: true,
     isNext: true
@@ -112,7 +112,7 @@ export const upcomingServices: Service[] = [
     date: "Mardi 31 Décembre",
     time: "22:00 - 01:00",
     location: "Temple Principal",
-    preacher: "Pasteur Jean-Marc Lumbu",
+    preacher: "Pasteur Lesty Paka",
     type: "special"
   }
 ];
@@ -136,7 +136,7 @@ export const recentSermons: Sermon[] = [
   {
     id: "ser_001",
     title: "La Paix qui Surpasse Toute Intelligence",
-    preacher: "Pasteur Jean-Marc Lumbu",
+    preacher: "Pasteur Lesty Paka",
     date: "15 Décembre 2024",
     thumbnail: "/api/placeholder/300/180",
     duration: "45:32",
@@ -146,7 +146,7 @@ export const recentSermons: Sermon[] = [
   {
     id: "ser_002",
     title: "Marcher par la Foi et non par la Vue",
-    preacher: "Pasteur Emmanuel Kamba",
+    preacher: "Pasteur Armèle",
     date: "08 Décembre 2024",
     thumbnail: "/api/placeholder/300/180",
     duration: "38:15",

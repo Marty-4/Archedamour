@@ -151,7 +151,7 @@ export function AdminFormDialog({
           {triggerLabel ?? (isEdit ? "Modifier" : "Ajouter")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[92dvh] overflow-y-auto p-4 sm:max-w-lg sm:p-6">
         <DialogHeader>
           <DialogTitle>{isEdit ? `Modifier : ${title}` : `Ajouter : ${title}`}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
@@ -233,18 +233,18 @@ export function AdminFormDialog({
               )}
             </div>
           ))}
-          <DialogFooter className="gap-2 sm:justify-between">
+          <DialogFooter className="sticky bottom-0 gap-2 border-t bg-background pt-3 sm:justify-between">
             {isEdit && (
               <Button type="button" variant="destructive" size="sm" onClick={handleDelete} disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                 Supprimer
               </Button>
             )}
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)} disabled={loading}>
+            <div className="flex w-full gap-2 sm:w-auto">
+              <Button type="button" variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => setOpen(false)} disabled={loading}>
                 Annuler
               </Button>
-              <Button type="submit" size="sm" disabled={loading}>
+              <Button type="submit" size="sm" className="flex-1 sm:flex-none" disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {isEdit ? "Enregistrer" : "Créer"}
               </Button>

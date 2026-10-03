@@ -73,11 +73,11 @@ Nous examinerons les clés bibliques pour une vie de prière efficace :
 - Comment faire face au silence apparent de Dieu
 - Les fruits d'une vie de prière persistante`,
     preacher: {
-      name: "Berger Lesty paka",
+      name: "Pasteur Lesty Paka",
       role: "Pasteur Principal",
       bio: "Plus de 20 ans de ministère pastoral. Passionné par l'enseignement biblique et le développement des leaders.",
       avatar: null,
-      initials: "MD",
+      initials: "LP",
     },
     category: "Foi",
     series: {
@@ -103,7 +103,7 @@ const relatedSermons = [
   {
     id: 2,
     title: "Marcher par la Foi et non par la Vue",
-    preacher: "Frère armèle", 
+    preacher: "Pasteur Armèle",
     category: "Confiance",
     date: "4 Août 2025",
     duration: "38 min",
@@ -111,7 +111,7 @@ const relatedSermons = [
   {
     id: 3,
     title: "L'Amour qui Transforme",
-    preacher: "Berger Lesty Paka",
+    preacher: "Pasteur Lesty Paka",
     category: "Amour",
     date: "28 Juillet 2025",
     duration: "45 min",
@@ -119,7 +119,7 @@ const relatedSermons = [
   {
     id: 4,
     title: "Trouver le Repos en Dieu",
-    preacher: "Berger Lesty Paka",
+    preacher: "Pasteur Lesty Paka",
     category: "Paix",
     date: "21 Juillet 2025",
     duration: "40 min",

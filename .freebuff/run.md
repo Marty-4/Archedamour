@@ -335,3 +335,38 @@ d'eux (mot de passe connu de l'église) ou relancer le seed si besoin.
   résolu, « Enregistré par Test Admin » rendu dans /member/predications.
   ⚠️ Après un `prisma generate`, redémarrer next dev (le client packagé
   n'est pas rechargé à chaud) — sinon 500 sur les nouveaux champs.
+
+## 15. Audit responsive mobile — formulaires et tableaux (2026-10-02)
+
+Contexte : l'app est en production sur https://archedamour.vercel.app (Supabase
+Postgres persistant). Audit mobile 390×844 de toutes les pages + formulaires.
+
+Corrections :
+- **Tableaux admin** (AdminTable) : la cellule `whitespace-nowrap` globale
+  forçait un débordement horizontal (397 px dans 308 px) et coupait la colonne
+  Actions hors écran. La cellule principale passe en `whitespace-normal` +
+  `break-words` (`max-w-0`), Actions/Statut en nowrap ; padding carte réduit
+  sur mobile (`px-3 py-4 sm:px-6 sm:py-6`). Vérifié : overflow 0 partout,
+  boutons Actions visibles sur 390 px.
+- **Dialogues** (ui/dialog.tsx) : hauteur max `calc(100dvh - 2rem)` (au lieu de
+  rien → débordement quand le clavier mobile s'ouvre), `overflow-y-auto`,
+  padding `p-4 sm:p-6` par défaut.
+- **AdminFormDialog** : `max-h-[92dvh]`, footer **sticky** en bas du dialogue
+  (border-t + bg) → les boutons Annuler/Enregistrer/Supprimer restent
+  visibles pendant tout le scroll du formulaire ; boutons pleine largeur sur
+  mobile (`flex-1 sm:flex-none`).
+- **GroupMembersManager** et dialog des **groupes publics** (`/groups`) :
+  alignés sur le même schéma (dvh + padding responsive).
+
+Vérifié en navigateur (390 px) : login, register, forgot-password (max-w-md,
+OK), dashboards admin/membre, nav bas + tiroir « Plus », tableaux
+(membres/dons/rapports/groupes : overflow 0), dialogues prédications (footer
+pinned), groupes (recherche OK), live public/membre, contact (7 inputs, tous
+≥ 16 px → pas de zoom iOS). Aucun débordement horizontal détecté.
+
+Notes :
+- Le crash « Application error »/Turbopack stale sur /member/dashboard était
+  un artefact de dev (HMR corrompu après redémarrages) — `rm -rf .next` +
+  redémarrage = résolu. Ne pas confondre avec un bug de code.
+- Compte de test admin réinitialisé : test.admin@archedamour.app /
+  Audit2026! (à supprimer un jour de la prod).

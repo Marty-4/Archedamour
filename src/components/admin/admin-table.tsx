@@ -59,7 +59,7 @@ export function AdminTable({
         </CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 py-4 sm:px-6 sm:py-6">
         <Table>
           <TableHeader>
             <TableRow>
@@ -84,9 +84,9 @@ export function AdminTable({
 
                 return (
                   <TableRow key={row.id}>
-                    <TableCell>
-                      <p className="font-medium">{row.primary}</p>
-                      <p className="text-xs text-muted-foreground md:hidden">{row.secondary ?? ""}</p>
+                    <TableCell className="max-w-0 whitespace-normal">
+                      <p className="font-medium break-words">{row.primary}</p>
+                      <p className="text-xs break-words text-muted-foreground md:hidden">{row.secondary ?? ""}</p>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{row.secondary ?? "—"}</TableCell>
                     <TableCell className="hidden lg:table-cell">{row.detail ?? "—"}</TableCell>
@@ -94,10 +94,10 @@ export function AdminTable({
                       <TableCell key={column.key}>{column.render(row)}</TableCell>
                     ))}
                     <TableCell className="hidden lg:table-cell">{row.date ? formatDate.format(row.date) : "—"}</TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <StatBadge status={badge.variant} label={badge.label} />
                     </TableCell>
-                    {actions && <TableCell className="text-right">{actions(row)}</TableCell>}
+                    {actions && <TableCell className="whitespace-nowrap pr-0 text-right">{actions(row)}</TableCell>}
                   </TableRow>
                 );
               })

@@ -168,9 +168,9 @@ const allEvents: Event[] = [
     address: "Boulevard Lumumba, Kinshasa",
     category: "Formation",
     organizer: {
-      name: "Frère Armèle",
-      role: "Pasteur Associé",
-      initials: "EK",
+      name: "Pasteur Armèle",
+      role: "Pasteur Second",
+      initials: "A",
     },
     maxSpots: 80,
     registeredCount: 80,

@@ -44,6 +44,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'https://archedamour.vercel.app',
+  'https://www.archedamour.vercel.app',
   ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
 ];
 
@@ -60,6 +61,11 @@ const io = new SocketIOServer(httpServer, {
         return callback(null, true);
       }
 
+      // Autoriser les domaines Vercel ainsi que les domaines de preview/staging.
+      if (/^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)) {
+        return callback(null, true);
+      }
+
       // Autoriser les adresses locales en développement
       if (
         /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)
@@ -73,7 +79,7 @@ const io = new SocketIOServer(httpServer, {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
-  transports: ['websocket', 'polling'],
+  transports: ['polling', 'websocket'],
   pingTimeout: 60000,
   pingInterval: 25000,
 });

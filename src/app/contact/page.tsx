@@ -36,7 +36,7 @@ const contactInfo = [
   {
     icon: MapPin,
     title: "Adresse",
-    lines: ["123 Rue du Temple", "75001 Paris, France"],
+    lines: ["Quartier Songolo", "Pointe-Noire, République du Congo"],
     action: "Itinéraire",
   },
   {
@@ -485,7 +485,7 @@ export default function ContactPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h3 className="font-semibold text-foreground">Arche d'Amour - Temple Principal</h3>
-                      <p className="text-sm text-muted-foreground">123 Rue du Temple, 75001 Paris</p>
+                      <p className="text-sm text-muted-foreground">Quartier Songolo, Pointe-Noire, République du Congo</p>
                     </div>
                     <Button size="sm" variant="outline" className="shrink-0 rounded-lg">
                       <MapPin className="w-4 h-4 mr-1" />

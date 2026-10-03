@@ -30,7 +30,7 @@ const allSermons = [
   {
     id: 1,
     title: "La Puissance de la Prière Persistante",
-    preacher: "Berger Lesty Paka",
+    preacher: "Pasteur Lesty Paka",
     category: "Foi",
     series: "Vaincre par la prière",
     date: "11 Août 2025",
@@ -42,7 +42,7 @@ const allSermons = [
   {
     id: 2,
     title: "Marcher par la Foi et non par la Vue",
-    preacher: " Berger Lesty Paka",
+    preacher: "Pasteur Lesty Paka",
     category: "Confiance",
     series: "La vie de foi",
     date: "4 Août 2025",
@@ -54,7 +54,7 @@ const allSermons = [
   {
     id: 3,
     title: "L'Amour qui Transforme",
-    preacher: "Frère Armèle",
+    preacher: "Pasteur Armèle",
     category: "Amour",
     series: "Fruits de l'Esprit",
     date: "28 Juillet 2025",
@@ -66,7 +66,7 @@ const allSermons = [
   {
     id: 4,
     title: "Trouver le Repos en Dieu",
-    preacher: "Berger Lesty paka",
+    preacher: "Pasteur Lesty Paka",
     category: "Paix",
     series: "Le repos de l'âme",
     date: "21 Juût 2025",
@@ -102,7 +102,7 @@ const allSermons = [
   {
     id: 7,
     title: "L'Importance de la Communauté",
-    preacher: "Berger Lesty Paka",
+    preacher: "Pasteur Lesty Paka",
     category: "Communauté",
     series: "Ensemble pour avancer",
     date: "30 Juin 2025",

@@ -90,20 +90,20 @@ const values = [
 // Leadership team
 const leadership = [
   {
-    name: "Pasteur Jean-Marc Lumbu",
+    name: "Pasteur Lesty Paka",
     role: "Pasteur Principal",
-    bio: "Plus de 20 ans de ministère pastoral. Passionné par l'enseignement biblique et le développement des leaders. Docteur en théologie systématique.",
+    bio: "Passionné par l'enseignement biblique et l'accompagnement de la communauté.",
     avatar: null,
-    initials: "JL",
-    email: "jm.lumbu@archedamour.app",
+    initials: "LP",
+    email: "Lestypaka@archedamour.app",
   },
   {
-    name: "Pasteure Emmanuel Kamba",
-    role: "Pasteur Associé - Jeunes & Familles",
-    bio: "Dédicacé à accompagner les jeunes et les familles dans leur marche spirituelle. Spécialiste en counseling chrétien.",
+    name: "Pasteur Armèle",
+    role: "Pasteur Second",
+    bio: "Engagé dans l'accompagnement pastoral et la vie de la communauté.",
     avatar: null,
-    initials: "EK",
-    email: "e.kamba@archedamour.app",
+    initials: "A",
+    email: "armèle@archedamour.app",
   },
   {
     name: "Sœur Grace Mutombo",

@@ -647,7 +647,7 @@ export default function GroupsPage() {
 
       {/* Group Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-h-[92dvh] overflow-y-auto p-4 sm:max-w-[700px] sm:p-6">
           {selectedGroup && (
             <>
               <DialogHeader>

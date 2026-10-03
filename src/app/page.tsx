@@ -37,7 +37,7 @@ const mockChurch = {
   name: "Arche d'Amour",
   tagline: "L'amour qui accueille, la foi qui élève",
   description: "Une communauté chrétienne où chacun trouve sa place. Ensemble, nous construisons des vies sur le fondement de l'amour et de la grâce.",
-  address: "123 Avenue de la Paix, Kinshasa, RDC",
+  address: "Quartier Songolo, Pointe-Noire, République du Congo",
   phone: "+243 81 234 5678",
   email: "contact@archedamour.cd",
   serviceTimes: {
@@ -52,7 +52,7 @@ const mockNextService = {
   date: "Dimanche 22 Décembre 2024",
   time: "07:00",
   location: "Temple Principal",
-  preacher: "Pasteur Jean-Marc Lumbu",
+  preacher: "Pasteur Lesty Paka",
   isLive: true
 };
 
@@ -66,7 +66,7 @@ const mockSermons = [
   {
     id: "1",
     title: "La Puissance de la Prière Persistante",
-    preacher: "Pasteur Jean-Marc Lumbu",
+    preacher: "Pasteur Lesty Paka",
     category: "Foi",
     date: "15 Déc 2024",
     duration: "45 min",

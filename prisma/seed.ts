@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 const DEMO_USERS = [
   {
     email: 'pasteur@churchconnect.com',
-    name: 'Pasteur Jean-Marc Lumbu',
+    name: 'Pasteur Lesty Paka',
     password: 'password123',
     role: 'PASTOR',
   },
@@ -80,8 +80,8 @@ const SERMON_TITLES = [
 const SERMON_CATEGORIES = ['Foi', 'Vie Chrétienne', 'Amour', 'Prières', 'Victoire', 'Communauté', 'Pardon', 'Joie', 'Paix'];
 
 const PREACHERS = [
-  'Berger Lesty Paka ',
-  'Frère Armèle ',
+  'Pasteur Lesty Paka',
+  'Pasteur Armèle',
   'Frère prince ',
   'Papa Celestin '
   

@@ -62,7 +62,7 @@ const allSermons: Sermon[] = [
   {
     id: "ser_001",
     title: "La Paix qui Surpasse Toute Intelligence",
-    preacher: "Pasteur Jean-Marc Lumbu",
+    preacher: "Pasteur Lesty Paka",
     date: "2024-12-15",
     duration: "45:32",
     category: "Paix & Consolation",
@@ -74,7 +74,7 @@ const allSermons: Sermon[] = [
   {
     id: "ser_002",
     title: "Marcher par la Foi et non par la Vue",
-    preacher: "Pasteur Emmanuel Kamba",
+    preacher: "Pasteur Armèle",
     date: "2024-12-08",
     duration: "38:15",
     category: "Foi & Confiance",
@@ -98,7 +98,7 @@ const allSermons: Sermon[] = [
   {
     id: "ser_004",
     title: "La Puissance de la Prière Persistante",
-    preacher: "Pasteur Jean-Marc Lumbu",
+    preacher: "Pasteur Lesty Paka",
     date: "2024-11-24",
     duration: "52:45",
     category: "Prière & Intercession",
@@ -121,7 +121,7 @@ const allSermons: Sermon[] = [
   {
     id: "ser_006",
     title: "La Joie comme Force",
-    preacher: "Pasteur Emmanuel Kamba",
+    preacher: "Pasteur Armèle",
     date: "2024-11-10",
     duration: "41:55",
     category: "Joie & Actions de Grâce",
@@ -144,7 +144,7 @@ const allSermons: Sermon[] = [
   {
     id: "ser_008",
     title: "L'Importance de la Communauté",
-    preacher: "Pasteur Jean-Marc Lumbu",
+    preacher: "Pasteur Lesty Paka",
     date: "2024-10-27",
     duration: "48:30",
     category: "Communauté & Fraternité",
@@ -180,7 +180,7 @@ const allSermons: Sermon[] = [
   {
     id: "ser_011",
     title: "La Grace Suffisante",
-    preacher: "Pasteur Emmanuel Kamba",
+    preacher: "Pasteur Armèle",
     date: "2024-10-06",
     duration: "37:50",
     category: "Grâce & Rédemption",
@@ -191,7 +191,7 @@ const allSermons: Sermon[] = [
   {
     id: "ser_012",
     title: "Guérison et Restauration",
-    preacher: "Pasteur Jean-Marc Lumbu",
+    preacher: "Pasteur Lesty Paka",
     date: "2024-09-29",
     duration: "55:22",
     category: "Guérison & Délivrance",

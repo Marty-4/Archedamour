@@ -107,14 +107,14 @@ const weeklySchedule = [
 const locations = [
   {
     name: "Temple Principal",
-    address: "123 Rue du Temple, 75001 Paris",
+    address: "Quartier Songolo, Pointe-Noire, République du Congo",
     capacity: "500 places",
     features: ["Salle principale", "Salle des enfants", "Cafétéria", "Parking souterrain"],
     isMain: true,
   },
   {
     name: "Centre Communautaire",
-    address: "45 Avenue des Arts, 75011 Paris",
+    address: "Quartier Songolo, Pointe-Noire, République du Congo",
     capacity: "150 places",
     features: ["Salles polyvalentes", "Espace jeunes", "Jardin"],
     isMain: false,

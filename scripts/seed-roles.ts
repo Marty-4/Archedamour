@@ -30,7 +30,7 @@ const PASSWORD = "test1234";
 
 const ACCOUNTS = [
   { email: "superadmin@test.arche", name: "Super Admin", role: "SUPER_ADMIN" },
-  { email: "pasteur@test.arche", name: "Pasteur Principal", role: "PASTOR" },
+  { email: "pasteur@test.arche", name: "Pasteur Lesty Paka", role: "PASTOR" },
   { email: "tresorier@test.arche", name: "Trésorier", role: "TREASURER" },
   { email: "responsable@test.arche", name: "Responsable Département", role: "DEPARTMENT_HEAD" },
   { email: "moderateur@test.arche", name: "Modérateur", role: "MODERATOR" },
